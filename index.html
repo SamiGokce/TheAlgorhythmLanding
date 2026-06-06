@@ -333,8 +333,12 @@
       if (!muted && soundtrack.paused) soundtrack.play().catch(() => {});
     });
 
-    soundtrack.play().catch(() => {
-      document.addEventListener('click', function startAudio() {
+    soundtrack.muted = true;
+    soundtrack.play().then(() => {
+      soundtrack.muted = false;
+    }).catch(() => {
+      document.addEventListener('click', function() {
+        soundtrack.muted = false;
         soundtrack.play().catch(() => {});
       }, { once: true });
     });
