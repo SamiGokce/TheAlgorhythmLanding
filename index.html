@@ -239,6 +239,62 @@
       z-index: 100;
     }
 
+    .pixel-game {
+      position: fixed;
+      bottom: 36px;
+      left: 36px;
+      z-index: 100;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      padding: 14px 18px;
+      border-radius: 16px;
+      background: rgba(255,255,255,0.07);
+      backdrop-filter: blur(20px) saturate(160%);
+      -webkit-backdrop-filter: blur(20px) saturate(160%);
+      border: 1px solid rgba(255,255,255,0.18);
+      box-shadow: 0 6px 24px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.25);
+    }
+
+    .game-title {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 6px;
+      color: rgba(255,255,255,0.5);
+      letter-spacing: 0.1em;
+    }
+
+    #game-canvas {
+      image-rendering: pixelated;
+      cursor: pointer;
+      display: block;
+    }
+
+    .game-stop-btn {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 7px;
+      color: #000;
+      background: #fff;
+      border: none;
+      padding: 7px 16px;
+      cursor: pointer;
+      box-shadow: 3px 3px 0 #555;
+      transition: transform 0.06s, box-shadow 0.06s;
+      image-rendering: pixelated;
+    }
+
+    .game-stop-btn:active {
+      transform: translate(2px,2px);
+      box-shadow: 1px 1px 0 #555;
+    }
+
+    .game-result {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 7px;
+      height: 10px;
+      letter-spacing: 0.05em;
+    }
+
     /* ── Mobile ─────────────────────────────────────── */
     @media (max-width: 600px) {
 
@@ -248,6 +304,10 @@
 
       .mobile-bg {
         display: block;
+      }
+
+      .pixel-game {
+        display: none;
       }
 
 
@@ -406,6 +466,13 @@
 
   <img class="nav-logo" src="logo.png" alt="Algorhythm">
 
+  <div class="pixel-game">
+    <span class="game-title">STOP THE LINE</span>
+    <canvas id="game-canvas" width="180" height="20"></canvas>
+    <button class="game-stop-btn" id="game-stop-btn">STOP</button>
+    <div class="game-result" id="game-result"></div>
+  </div>
+
   <script>
     const soundtrack = document.getElementById('soundtrack');
     soundtrack.volume = 0.01;
@@ -529,6 +596,77 @@
     document.getElementById('waitlist-email').addEventListener('keydown', function(e) {
       if (e.key === 'Enter') submitWaitlist();
     });
+
+    // ── Stop The Line Game (desktop only) ──────────────
+    if (window.innerWidth > 600) {
+      const gc = document.getElementById('game-canvas');
+      const gctx = gc.getContext('2d');
+      const GW = gc.width, GH = gc.height;
+      const PERFECT = 16, GOOD = 36;
+      let gPos = 0, gDir = 1, gSpeed = 2.2, gStopped = false, gFrame;
+
+      function drawGame() {
+        gctx.clearRect(0, 0, GW, GH);
+
+        // track
+        gctx.fillStyle = 'rgba(255,255,255,0.12)';
+        gctx.fillRect(0, 6, GW, 8);
+
+        // good zone
+        gctx.fillStyle = 'rgba(255,255,180,0.35)';
+        gctx.fillRect(GW/2 - GOOD, 6, GOOD*2, 8);
+
+        // perfect zone
+        gctx.fillStyle = 'rgba(150,255,150,0.55)';
+        gctx.fillRect(GW/2 - PERFECT, 6, PERFECT*2, 8);
+
+        // cursor (4px wide pixel)
+        gctx.fillStyle = '#fff';
+        gctx.fillRect(Math.round(gPos) - 2, 2, 4, GH - 4);
+
+        if (!gStopped) {
+          gPos += gDir * gSpeed;
+          if (gPos >= GW - 2) { gPos = GW - 2; gDir = -1; }
+          if (gPos <= 2)      { gPos = 2;      gDir =  1; }
+          gFrame = requestAnimationFrame(drawGame);
+        }
+      }
+
+      function gameStop() {
+        if (gStopped) {
+          gStopped = false;
+          gSpeed = Math.min(gSpeed + 0.4, 6);
+          document.getElementById('game-result').textContent = '';
+          drawGame();
+          return;
+        }
+        gStopped = true;
+        cancelAnimationFrame(gFrame);
+
+        const dist = Math.abs(gPos - GW / 2);
+        const el = document.getElementById('game-result');
+        if (dist < PERFECT) {
+          el.textContent = 'PERFECT!'; el.style.color = '#7fff7f';
+        } else if (dist < GOOD) {
+          el.textContent = 'GOOD';    el.style.color = '#ffff88';
+        } else {
+          el.textContent = 'MISS';    el.style.color = '#ff7777';
+          gSpeed = Math.max(gSpeed - 0.3, 2.2);
+        }
+      }
+
+      document.getElementById('game-stop-btn').addEventListener('click', gameStop);
+      gc.addEventListener('click', gameStop);
+      document.addEventListener('keydown', function(e) {
+        if (e.code === 'Space' && document.activeElement !== document.getElementById('waitlist-email')) {
+          e.preventDefault(); gameStop();
+        }
+      });
+
+      drawGame();
+    } else {
+      document.querySelector('.pixel-game').style.display = 'none';
+    }
   </script>
 </body>
 </html>
