@@ -215,6 +215,16 @@
 
       video {
         object-position: calc(100% + 215px) 50%;
+        animation: sway 12s ease-in-out infinite;
+        transform-origin: center center;
+      }
+
+      @keyframes sway {
+        0%   { transform: translate(0px, 0px) scale(1.02); }
+        25%  { transform: translate(-4px, 3px) scale(1.02); }
+        50%  { transform: translate(3px, -3px) scale(1.02); }
+        75%  { transform: translate(-3px, -2px) scale(1.02); }
+        100% { transform: translate(0px, 0px) scale(1.02); }
       }
 
 
