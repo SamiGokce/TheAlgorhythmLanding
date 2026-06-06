@@ -469,8 +469,11 @@
   <div class="pixel-game">
     <span class="game-title">STOP THE LINE</span>
     <canvas id="game-canvas" height="20" style="width:100%;display:block"></canvas>
-    <button class="game-stop-btn" id="game-stop-btn">STOP</button>
-    <div class="game-result" id="game-result"></div>
+    <div style="display:flex;gap:16px;align-items:center">
+      <button class="game-stop-btn" id="game-stop-btn">STOP</button>
+      <div class="game-result" id="game-result"></div>
+      <div class="game-result" id="game-streak" style="color:#fff"></div>
+    </div>
   </div>
 
   <script>
@@ -604,7 +607,7 @@
       const gctx = gc.getContext('2d');
       const GW = gc.width, GH = gc.height;
       const PERFECT = 20, GOOD = 50;
-      let gPos = 0, gDir = 1, gSpeed = 16, gStopped = false, gFrame;
+      let gPos = 0, gDir = 1, gSpeed = 28, gStopped = false, gFrame, gStreak = 0;
 
       function drawGame() {
         gctx.clearRect(0, 0, GW, GH);
@@ -636,7 +639,7 @@
       function gameStop() {
         if (gStopped) {
           gStopped = false;
-          gSpeed = Math.min(gSpeed + 1, 18);
+          gSpeed = Math.min(gSpeed + 1, 40);
           document.getElementById('game-result').textContent = '';
           drawGame();
           return;
@@ -646,14 +649,19 @@
 
         const dist = Math.abs(gPos - GW / 2);
         const el = document.getElementById('game-result');
+        const streakEl = document.getElementById('game-streak');
         if (dist < PERFECT) {
+          gStreak++;
           el.textContent = 'PERFECT!'; el.style.color = '#7fff7f';
         } else if (dist < GOOD) {
+          gStreak++;
           el.textContent = 'GOOD';    el.style.color = '#ffff88';
         } else {
+          gStreak = 0;
           el.textContent = 'MISS';    el.style.color = '#ff7777';
-          gSpeed = Math.max(gSpeed - 1, 16);
+          gSpeed = Math.max(gSpeed - 1, 28);
         }
+        streakEl.textContent = gStreak > 0 ? '🔥 ' + gStreak : '';
       }
 
       document.getElementById('game-stop-btn').addEventListener('click', gameStop);
