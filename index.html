@@ -272,7 +272,7 @@
   </nav>
   <script>
     const soundtrack = document.getElementById('soundtrack');
-    soundtrack.volume = 0.04;
+    soundtrack.volume = 0.01;
 
     const muteBtn = document.getElementById('mute-btn');
     let muted = false;
@@ -333,10 +333,11 @@
       if (!muted && soundtrack.paused) soundtrack.play().catch(() => {});
     });
 
-    document.addEventListener('click', function startAudio() {
-      soundtrack.play().catch(() => {});
-      document.removeEventListener('click', startAudio);
-    }, { once: true });
+    soundtrack.play().catch(() => {
+      document.addEventListener('click', function startAudio() {
+        soundtrack.play().catch(() => {});
+      }, { once: true });
+    });
 
     function playWhoosh() {
       const ctx = new (window.AudioContext || window.webkitAudioContext)();
