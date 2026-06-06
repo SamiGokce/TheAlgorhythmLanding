@@ -15,6 +15,7 @@
     html, body {
       width: 100%;
       height: 100%;
+      height: 100dvh;
       overflow: hidden;
       background: #000;
     }
@@ -215,6 +216,10 @@
 
       video {
         object-position: calc(100% + 215px) 50%;
+        object-fit: cover;
+        width: 100vw;
+        height: 100dvh;
+        min-height: -webkit-fill-available;
         animation: sway 12s ease-in-out infinite;
         transform-origin: center center;
       }
