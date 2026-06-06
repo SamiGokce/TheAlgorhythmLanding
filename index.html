@@ -68,6 +68,7 @@
 
       /* hover float animation */
       animation: float 3.6s ease-in-out infinite;
+      overflow: visible;
     }
 
     @keyframes float {
@@ -219,11 +220,17 @@
       transform: scale(0.92);
     }
 
+    .nav-logo-spacer {
+      flex: 0 0 100px;
+    }
+
     .nav-logo {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
       height: 120px;
       width: auto;
-      display: block;
-      flex-shrink: 0;
     }
 
     /* ── Mobile ─────────────────────────────────────── */
@@ -386,6 +393,7 @@
 
   <nav class="bottom-nav">
     <a class="nav-link">About the Program</a>
+    <div class="nav-logo-spacer"></div>
     <img class="nav-logo" src="logo.png" alt="Algorhythm">
     <a class="nav-link">About Us</a>
   </nav>
