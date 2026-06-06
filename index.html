@@ -604,7 +604,7 @@
       const gctx = gc.getContext('2d');
       const GW = gc.width, GH = gc.height;
       const PERFECT = 20, GOOD = 50;
-      let gPos = 0, gDir = 1, gSpeed = 8, gStopped = false, gFrame;
+      let gPos = 0, gDir = 1, gSpeed = 16, gStopped = false, gFrame;
 
       function drawGame() {
         gctx.clearRect(0, 0, GW, GH);
@@ -652,7 +652,7 @@
           el.textContent = 'GOOD';    el.style.color = '#ffff88';
         } else {
           el.textContent = 'MISS';    el.style.color = '#ff7777';
-          gSpeed = Math.max(gSpeed - 1, 8);
+          gSpeed = Math.max(gSpeed - 1, 16);
         }
       }
 
