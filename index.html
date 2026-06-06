@@ -474,6 +474,9 @@
       <div class="game-result" id="game-result"></div>
       <div class="game-result" id="game-streak" style="color:#fff"></div>
     </div>
+    <div id="game-lock" style="display:none;font-family:'Press Start 2P',monospace;font-size:7px;color:#fff;letter-spacing:0.05em;text-align:center">
+      JOIN THE WAITLIST TO KEEP PLAYING
+    </div>
   </div>
 
   <script>
@@ -584,6 +587,8 @@
         input.style.display = 'none';
         document.querySelector('.waitlist-btn').style.display = 'none';
         success.style.display = 'block';
+        window.waitlistSubmitted = true;
+        if (window.unlockGame) window.unlockGame();
 
         const bird = document.getElementById('bird');
         bird.classList.remove('fly');
@@ -607,7 +612,7 @@
       const gctx = gc.getContext('2d');
       const GW = gc.width, GH = gc.height;
       const PERFECT = 20, GOOD = 50;
-      let gPos = 0, gDir = 1, gSpeed = 28, gStopped = false, gFrame, gStreak = 0;
+      let gPos = 0, gDir = 1, gSpeed = 28, gStopped = false, gFrame, gStreak = 0, gHits = 0, gLocked = false;
 
       function drawGame() {
         gctx.clearRect(0, 0, GW, GH);
@@ -638,6 +643,7 @@
 
       function gameStop() {
         if (gStopped) {
+          if (gLocked) return;
           gStopped = false;
           gSpeed = Math.min(gSpeed + 1, 40);
           document.getElementById('game-result').textContent = '';
@@ -650,11 +656,12 @@
         const dist = Math.abs(gPos - GW / 2);
         const el = document.getElementById('game-result');
         const streakEl = document.getElementById('game-streak');
+        const lockEl = document.getElementById('game-lock');
         if (dist < PERFECT) {
-          gStreak++;
+          gStreak++; gHits++;
           el.textContent = 'PERFECT!'; el.style.color = '#7fff7f';
         } else if (dist < GOOD) {
-          gStreak++;
+          gStreak++; gHits++;
           el.textContent = 'GOOD';    el.style.color = '#ffff88';
         } else {
           gStreak = 0;
@@ -662,6 +669,13 @@
           gSpeed = Math.max(gSpeed - 1, 28);
         }
         streakEl.textContent = gStreak > 1 ? 'STREAK ' + gStreak : '';
+
+        if (gHits === 1 && !window.waitlistSubmitted) {
+          gLocked = true;
+          lockEl.style.display = 'block';
+          document.getElementById('game-stop-btn').disabled = true;
+          document.getElementById('game-stop-btn').style.opacity = '0.3';
+        }
       }
 
       document.getElementById('game-stop-btn').addEventListener('click', gameStop);
@@ -671,6 +685,16 @@
           e.preventDefault(); gameStop();
         }
       });
+
+      window.unlockGame = function() {
+        gLocked = false;
+        gStopped = false;
+        document.getElementById('game-lock').style.display = 'none';
+        document.getElementById('game-stop-btn').disabled = false;
+        document.getElementById('game-stop-btn').style.opacity = '1';
+        document.getElementById('game-result').textContent = '';
+        drawGame();
+      };
 
       drawGame();
     } else {
