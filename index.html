@@ -209,6 +209,97 @@
       display: block;
       flex-shrink: 0;
     }
+
+    /* ── Mobile ─────────────────────────────────────── */
+    @media (max-width: 600px) {
+
+      .waitlist-wrap {
+        gap: 12px;
+        width: 92vw;
+      }
+
+      .waitlist-label {
+        font-size: 9px;
+        text-align: center;
+        line-height: 1.8;
+      }
+
+      .waitlist-input {
+        font-size: 7px;
+        width: 88vw;
+        padding: 13px 12px;
+        border-width: 3px;
+        box-shadow: 4px 4px 0 #000, inset 2px 2px 0 rgba(255,255,255,0.1);
+      }
+
+      .waitlist-btn {
+        font-size: 8px;
+        padding: 13px 22px;
+        box-shadow: 4px 4px 0 #555;
+      }
+
+      .waitlist-btn:hover  { box-shadow: 6px 6px 0 #555; }
+      .waitlist-btn:active { box-shadow: 1px 1px 0 #555; transform: translate(3px,3px); }
+
+      .waitlist-success {
+        font-size: 8px;
+      }
+
+      .bottom-nav {
+        width: 94vw;
+        padding: 12px 16px;
+        bottom: 20px;
+        gap: 10px;
+      }
+
+      .nav-link {
+        font-size: 9px;
+      }
+
+      .nav-logo {
+        height: 36px;
+      }
+
+      .mute-btn {
+        top: 14px;
+        right: 14px;
+      }
+
+      .mute-btn svg {
+        width: 30px;
+        height: 24px;
+      }
+
+      .bird {
+        width: 110px;
+      }
+    }
+
+    /* ── Very small phones ───────────────────────────── */
+    @media (max-width: 380px) {
+      .waitlist-label {
+        font-size: 7px;
+      }
+
+      .waitlist-input {
+        font-size: 6px;
+        padding: 11px 10px;
+      }
+
+      .waitlist-btn {
+        font-size: 7px;
+        padding: 11px 18px;
+      }
+
+      .nav-link {
+        font-size: 7px;
+      }
+
+      .nav-logo {
+        height: 28px;
+      }
+    }
+
   </style>
 </head>
 <body>
