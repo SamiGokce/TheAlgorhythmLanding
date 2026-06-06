@@ -259,9 +259,18 @@
         transform: translate(-50%, calc(-50% + 150px));
       }
 
+      @keyframes logoSway {
+        0%   { transform: translateX(-50%) translate(0px, 0px); }
+        25%  { transform: translateX(-50%) translate(-5px, 4px); }
+        50%  { transform: translateX(-50%) translate(4px, -4px); }
+        75%  { transform: translateX(-50%) translate(-4px, -3px); }
+        100% { transform: translateX(-50%) translate(0px, 0px); }
+      }
+
       .nav-logo {
         top: 180px;
         height: 2000px;
+        animation: logoSway 14s ease-in-out infinite;
       }
 
       .waitlist-label {
