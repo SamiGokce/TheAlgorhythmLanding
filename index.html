@@ -590,6 +590,15 @@
         window.waitlistSubmitted = true;
         if (window.unlockGame) window.unlockGame();
 
+        // Submit to Google Form silently
+        const formData = new FormData();
+        formData.append('entry.646541989', input.value);
+        fetch('https://docs.google.com/forms/d/e/1FAIpQLSfLUOK32YcHtYOMhOnMTyTysyp4G-MoKbIcpkz7EJ242ac00Q/formResponse', {
+          method: 'POST',
+          mode: 'no-cors',
+          body: formData
+        });
+
         const bird = document.getElementById('bird');
         bird.classList.remove('fly');
         void bird.offsetWidth; // reset animation
