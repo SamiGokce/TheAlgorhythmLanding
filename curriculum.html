@@ -450,6 +450,14 @@
     }
 
 
+    /* ── Cat hover effect ──────────────────────── */
+    .cat-hover {
+      transform: scale(1.06) translateY(-3px) !important;
+      border-color: #f97316 !important;
+      box-shadow: 3px 3px 0 #fed7aa !important;
+      transition: transform 0.08s, border-color 0.08s, box-shadow 0.08s !important;
+    }
+
     /* ── Mobile ────────────────────────────────── */
     @media (max-width: 600px) {
       .page { padding: 28px 14px 60px; }
@@ -837,11 +845,11 @@ buildWeekNav();
 buildWeekDetail();
 updateProgress();
 
-// ── Duck (full-page overlay) ─────────────────────────────────────────────────
+// ── Cat (full-page overlay, 2-frame walk, interactive hover) ─────────────────
 (function() {
   const canvas = document.getElementById('duck-canvas');
   const ctx = canvas.getContext('2d');
-  const S = 5; // px per game pixel — bigger and cuter
+  const S = 5; // px per game pixel
 
   function resize() {
     canvas.width  = window.innerWidth;
@@ -850,111 +858,125 @@ updateProgress();
   resize();
   window.addEventListener('resize', resize);
 
-  // ── Pixel art duck, 12 wide × 11 tall ──────────────────────────────────────
-  // Y=body yellow  G=golden head  O=orange beak/feet  E=eye  W=white wing  .=empty
+  // ── Pixel art cat 10×10 ────────────────────────────────────────────────────
+  // C=orange body  W=cream belly  E=dark eye  N=pink nose  T=dark tail  .=empty
   //
-  // Facing RIGHT — head leads right, beak pokes out right
-  const DUCK_R = [
-    '....GGGG....',  // head dome
-    '...GGGGGG...',  // head sides
-    '..GGEGGGGOO.',  // eye + beak (two orange pixels right)
-    '.YYYYGGGGO..',  // body starts, beak tip
-    'YYYYYYYYYYYY',  // widest body
-    'YYYYYYYYYYYY',  // body
-    '.YWWYYYYYYYY',  // white wing highlight
-    '..YYYYYYYYYY',  // lower body
-    '...YYYYYYYY.',  // taper
-    '....YYYY....',  // tail
-    '....OOOO....',  // feet (two pairs)
+  // Side-view cat facing RIGHT (head/nose on right, tail drags left)
+  // Frame A: legs spread (stride open)
+  const CAT_R_A = [
+    '......CC..',  // ear tip at 6-7
+    '.....CCCC.',  // head dome 5-8
+    '....CCECC.',  // eye E at col 6
+    '...CCCCCCN',  // muzzle + pink nose at col 9
+    '.CCCCCCC..',  // body (wider than head)
+    '.CWWCCCC..',  // cream belly at 2-3
+    'TCCCCCCC..',  // tail T at col 0 + body
+    'TT.CCCCC..',  // tail curves at 0-1, body 3-7
+    '...C..C...',  // legs: front col 3, back col 6
+    '...C..C...',  // paws
+  ];
+  // Frame B: legs crossing (mid-stride)
+  const CAT_R_B = [
+    '......CC..',
+    '.....CCCC.',
+    '....CCECC.',
+    '...CCCCCCN',
+    '.CCCCCCC..',
+    '.CWWCCCC..',
+    'TCCCCCCC..',
+    'TT.CCCCC..',
+    '....CC....',  // legs at cols 4-5 (crossing)
+    '....CC....',
   ];
 
-  // Facing LEFT — mirror: head leads left, beak pokes out left
-  const DUCK_L = [
-    '....GGGG....',
-    '...GGGGGG...',
-    '.OOGGGGEGG..',
-    '..OGGGGYYYYY',
-    'YYYYYYYYYYYY',
-    'YYYYYYYYYYYY',
-    'YYYYYYYYYWWY',
-    'YYYYYYYYYY..',
-    '.YYYYYYYY...',
-    '....YYYY....',
-    '....OOOO....',
-  ];
+  // Mirror for left-facing
+  const mir = rows => rows.map(r => [...r].reverse().join(''));
+  const CAT_L_A = mir(CAT_R_A);
+  const CAT_L_B = mir(CAT_R_B);
 
-  const COL = {
-    'Y': '#fbbf24',  // warm yellow body
-    'G': '#f59e0b',  // deeper gold head
-    'O': '#ea580c',  // orange beak + feet
-    'E': '#1e1040',  // dark eye
-    'W': '#fef3c7',  // pale wing highlight
-    '.': null
-  };
+  const COL = { C:'#f97316', W:'#fef3c7', E:'#1e1040', N:'#fca5a5', T:'#c2410c', '.':null };
+  const CW = 10 * S, CH = 10 * S;
 
-  const COLS = 12, ROWS = 11;
-  const DW = COLS * S, DH = ROWS * S;
-
-  function drawDuck(sprite, ox, oy) {
-    // Soft drop shadow under duck
-    ctx.fillStyle = 'rgba(0,0,0,0.08)';
+  function drawCat(sprite, ox, oy) {
+    ctx.fillStyle = 'rgba(0,0,0,0.09)';
     ctx.beginPath();
-    ctx.ellipse(ox + DW/2, oy + DH + S, DW/2 - S, S, 0, 0, Math.PI * 2);
+    ctx.ellipse(ox + CW/2, oy + CH + 2, CW/2 - 3, 3, 0, 0, Math.PI * 2);
     ctx.fill();
-
     sprite.forEach((row, r) => {
       [...row].forEach((ch, c) => {
-        const color = COL[ch];
-        if (!color) return;
-        ctx.fillStyle = color;
+        const col = COL[ch];
+        if (!col) return;
+        ctx.fillStyle = col;
         ctx.fillRect(ox + c * S, oy + r * S, S, S);
       });
     });
   }
 
-  let duck = {
-    x: window.innerWidth  / 2 - DW / 2,
-    y: window.innerHeight / 2 - DH / 2,
-    vx: 0, vy: 0, facing: 1, step: 0, frameTimer: 0
+  let cat = {
+    x: window.innerWidth  / 2 - CW / 2,
+    y: window.innerHeight / 2 - CH / 2,
+    vx: 0, vy: 0, facing: 1, frame: 0, frameTimer: 0
   };
   const SPEED = 2.8;
   const keys = {};
 
+  // ── Interactive element hover detection ────────────────────────────────────
+  const SEL = '.week-btn, .lesson-card, .outcome-item, .nav-arrow, .mark-done-btn, .back';
+  let els = [], active = new Set();
+
+  function collectEls() { els = [...document.querySelectorAll(SEL)]; }
+  collectEls();
+
+  // Refresh list when lesson cards are re-rendered
+  const detail = document.getElementById('week-detail');
+  if (detail) new MutationObserver(collectEls).observe(detail, { childList: true, subtree: true });
+
+  function checkHover() {
+    const cx = cat.x + CW / 2, cy = cat.y + CH / 2;
+    const next = new Set();
+    els.forEach(el => {
+      const r = el.getBoundingClientRect();
+      if (cx >= r.left && cx <= r.right && cy >= r.top && cy <= r.bottom) next.add(el);
+    });
+    active.forEach(el => { if (!next.has(el)) el.classList.remove('cat-hover'); });
+    next.forEach(el => { if (!active.has(el)) el.classList.add('cat-hover'); });
+    active = next;
+  }
+
   function update() {
-    duck.vx = 0; duck.vy = 0;
-    if (keys['ArrowLeft'])  { duck.vx = -SPEED; duck.facing = -1; }
-    if (keys['ArrowRight']) { duck.vx =  SPEED; duck.facing =  1; }
-    if (keys['ArrowUp'])    duck.vy = -SPEED;
-    if (keys['ArrowDown'])  duck.vy =  SPEED;
+    cat.vx = 0; cat.vy = 0;
+    if (keys['ArrowLeft'])  { cat.vx = -SPEED; cat.facing = -1; }
+    if (keys['ArrowRight']) { cat.vx =  SPEED; cat.facing =  1; }
+    if (keys['ArrowUp'])    cat.vy = -SPEED;
+    if (keys['ArrowDown'])  cat.vy =  SPEED;
 
-    if (duck.vx && duck.vy) { duck.vx *= 0.707; duck.vy *= 0.707; }
+    if (cat.vx && cat.vy) { cat.vx *= 0.707; cat.vy *= 0.707; }
 
-    const moving = duck.vx !== 0 || duck.vy !== 0;
+    const moving = cat.vx !== 0 || cat.vy !== 0;
     if (moving) {
-      duck.frameTimer++;
-      if (duck.frameTimer > 9) { duck.step ^= 1; duck.frameTimer = 0; }
+      cat.frameTimer++;
+      if (cat.frameTimer > 10) { cat.frame ^= 1; cat.frameTimer = 0; }
     } else {
-      duck.step = 0;
-      duck.frameTimer = 0;
+      cat.frame = 0; cat.frameTimer = 0;
     }
 
-    duck.x = Math.max(0, Math.min(window.innerWidth  - DW, duck.x + duck.vx));
-    duck.y = Math.max(0, Math.min(window.innerHeight - DH, duck.y + duck.vy));
+    cat.x = Math.max(0, Math.min(window.innerWidth  - CW, cat.x + cat.vx));
+    cat.y = Math.max(0, Math.min(window.innerHeight - CH, cat.y + cat.vy));
+
+    checkHover();
   }
 
   function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    const bob = duck.step ? -S : 0;
-    const sprite = duck.facing === 1 ? DUCK_R : DUCK_L;
-    drawDuck(sprite, duck.x | 0, (duck.y + bob) | 0);
+    const frames = cat.facing === 1 ? [CAT_R_A, CAT_R_B] : [CAT_L_A, CAT_L_B];
+    drawCat(frames[cat.frame], cat.x | 0, cat.y | 0);
   }
 
   function loop() { update(); draw(); requestAnimationFrame(loop); }
 
   window.addEventListener('keydown', e => {
     if (['ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.key)) {
-      keys[e.key] = true;
-      e.preventDefault();
+      keys[e.key] = true; e.preventDefault();
     }
   });
   window.addEventListener('keyup', e => { keys[e.key] = false; });
