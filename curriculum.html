@@ -9,38 +9,22 @@
     * { margin: 0; padding: 0; box-sizing: border-box; }
 
     html, body {
-      width: 100%; height: 100%;
-      background: #050a12;
-      color: #fff;
+      width: 100%;
+      background: #fdf6ff;
+      color: #2a1a3e;
       font-family: 'Press Start 2P', monospace;
       overflow-x: hidden;
     }
 
-    /* ── Pixel grid background ─────────────────── */
+    /* ── Soft pixel grid ───────────────────────── */
     body::before {
       content: '';
       position: fixed;
       inset: 0;
       background-image:
-        linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+        linear-gradient(rgba(180,140,220,0.12) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(180,140,220,0.12) 1px, transparent 1px);
       background-size: 32px 32px;
-      z-index: 0;
-      pointer-events: none;
-    }
-
-    /* ── Scanline overlay ──────────────────────── */
-    body::after {
-      content: '';
-      position: fixed;
-      inset: 0;
-      background: repeating-linear-gradient(
-        0deg,
-        transparent,
-        transparent 2px,
-        rgba(0,0,0,0.08) 2px,
-        rgba(0,0,0,0.08) 4px
-      );
       z-index: 0;
       pointer-events: none;
     }
@@ -58,13 +42,13 @@
     .back {
       display: inline-block;
       font-size: 7px;
-      color: rgba(255,255,255,0.4);
+      color: #b08ac8;
       text-decoration: none;
       letter-spacing: 0.08em;
       margin-bottom: 40px;
       transition: color 0.2s;
     }
-    .back:hover { color: #fff; }
+    .back:hover { color: #7c3aed; }
     .back::before { content: '◀ '; }
 
     /* ── Header ────────────────────────────────── */
@@ -77,101 +61,122 @@
       display: inline-block;
       font-size: 7px;
       letter-spacing: 0.15em;
-      color: #0ff;
-      border: 2px solid #0ff;
-      padding: 6px 14px;
+      color: #c026d3;
+      background: #fce7ff;
+      border: 2px solid #e879f9;
+      padding: 6px 16px;
       margin-bottom: 20px;
-      box-shadow: 3px 3px 0 #005555, inset 0 0 12px rgba(0,255,255,0.1);
-      image-rendering: pixelated;
+      box-shadow: 3px 3px 0 #d8b4fe;
     }
 
     .header h1 {
       font-size: clamp(14px, 3vw, 22px);
       letter-spacing: 0.04em;
       line-height: 1.6;
-      text-shadow: 3px 3px 0 #000, 0 0 20px rgba(0,255,255,0.3);
+      color: #4c1d95;
+      text-shadow: 3px 3px 0 #ddd6fe;
       margin-bottom: 16px;
     }
 
     .header .tagline {
       font-size: 8px;
-      color: rgba(255,255,255,0.5);
-      letter-spacing: 0.1em;
+      color: #9d7ec5;
+      letter-spacing: 0.06em;
       line-height: 2;
+    }
+
+    /* ── Pixel stars decoration ────────────────── */
+    .stars {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 28px;
+      font-size: 10px;
+      color: #f0abfc;
+      letter-spacing: 4px;
     }
 
     /* ── Info strip ────────────────────────────── */
     .info-strip {
       display: flex;
       flex-wrap: wrap;
-      gap: 12px;
+      gap: 10px;
       justify-content: center;
       margin-bottom: 48px;
     }
 
     .info-chip {
       font-size: 6px;
-      letter-spacing: 0.08em;
+      letter-spacing: 0.06em;
       padding: 8px 12px;
-      background: rgba(255,255,255,0.05);
-      border: 1px solid rgba(255,255,255,0.15);
-      color: rgba(255,255,255,0.7);
+      background: #fff;
+      border: 2px solid #e9d5ff;
+      color: #7c3aed;
       white-space: nowrap;
+      box-shadow: 2px 2px 0 #ddd6fe;
     }
 
-    .info-chip span { color: #fff; }
+    .info-chip span { color: #4c1d95; }
 
-    /* ── Outcomes ──────────────────────────────── */
+    /* ── Section title ─────────────────────────── */
     .section-title {
       font-size: 9px;
-      letter-spacing: 0.12em;
-      color: #0ff;
+      letter-spacing: 0.1em;
+      color: #7c3aed;
       margin-bottom: 20px;
       padding-bottom: 8px;
-      border-bottom: 2px solid rgba(0,255,255,0.3);
+      border-bottom: 3px solid #ddd6fe;
     }
 
-    .outcomes {
-      margin-bottom: 48px;
-    }
+    /* ── Outcomes ──────────────────────────────── */
+    .outcomes { margin-bottom: 48px; }
 
     .outcome-item {
       display: flex;
       align-items: flex-start;
       gap: 12px;
-      margin-bottom: 14px;
+      margin-bottom: 10px;
       font-size: 7px;
       line-height: 2;
-      color: rgba(255,255,255,0.8);
+      color: #4c3366;
       cursor: pointer;
       padding: 10px 14px;
-      border: 1px solid rgba(255,255,255,0.08);
-      transition: background 0.15s, border-color 0.15s;
+      background: #fff;
+      border: 2px solid #e9d5ff;
+      box-shadow: 2px 2px 0 #ddd6fe;
+      transition: border-color 0.15s, background 0.15s;
     }
 
-    .outcome-item:hover { background: rgba(255,255,255,0.04); border-color: rgba(0,255,255,0.3); }
+    .outcome-item:hover { border-color: #a855f7; background: #fdf4ff; }
 
-    .outcome-item.checked { color: rgba(255,255,255,0.4); }
-    .outcome-item.checked .check-box { background: #0ff; color: #000; }
+    .outcome-item.checked {
+      color: #b8a0d0;
+      background: #f5f0ff;
+      text-decoration: line-through;
+      text-decoration-color: #d8b4fe;
+    }
+    .outcome-item.checked .check-box {
+      background: #a855f7;
+      border-color: #7c3aed;
+      color: #fff;
+    }
 
     .check-box {
       flex-shrink: 0;
       width: 14px;
       height: 14px;
-      border: 2px solid rgba(255,255,255,0.4);
+      border: 2px solid #c4b5fd;
+      background: #fff;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 8px;
+      font-size: 7px;
       margin-top: 2px;
-      image-rendering: pixelated;
-      transition: background 0.1s;
+      transition: all 0.1s;
     }
 
     /* ── Week navigator ────────────────────────── */
-    .week-nav {
-      margin-bottom: 32px;
-    }
+    .week-nav { margin-bottom: 32px; }
 
     .week-grid {
       display: flex;
@@ -182,55 +187,61 @@
     .week-btn {
       font-family: 'Press Start 2P', monospace;
       font-size: 8px;
-      width: 52px;
-      height: 52px;
-      background: rgba(255,255,255,0.05);
-      border: 2px solid rgba(255,255,255,0.2);
-      color: rgba(255,255,255,0.6);
+      width: 54px;
+      height: 54px;
+      background: #fff;
+      border: 2px solid #ddd6fe;
+      color: #9d7ec5;
       cursor: pointer;
-      image-rendering: pixelated;
       transition: all 0.1s;
       position: relative;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      gap: 2px;
+      gap: 3px;
+      box-shadow: 2px 2px 0 #e9d5ff;
     }
 
     .week-btn:hover {
-      border-color: #0ff;
-      color: #fff;
-      background: rgba(0,255,255,0.08);
-      box-shadow: 0 0 10px rgba(0,255,255,0.2);
+      border-color: #a855f7;
+      color: #4c1d95;
+      background: #fdf4ff;
+      box-shadow: 3px 3px 0 #d8b4fe;
     }
 
     .week-btn.active {
-      background: rgba(0,255,255,0.15);
-      border-color: #0ff;
-      color: #0ff;
-      box-shadow: 3px 3px 0 #005555, 0 0 16px rgba(0,255,255,0.3);
+      background: #ede9fe;
+      border-color: #7c3aed;
+      color: #4c1d95;
+      box-shadow: 3px 3px 0 #a855f7;
     }
 
-    .week-btn.done { border-color: rgba(0,255,100,0.5); color: rgba(0,255,100,0.7); }
+    .week-btn.done {
+      background: #f0fdf4;
+      border-color: #86efac;
+      color: #16a34a;
+      box-shadow: 2px 2px 0 #bbf7d0;
+    }
     .week-btn.done::after {
       content: '✓';
       position: absolute;
       top: 2px;
-      right: 4px;
+      right: 5px;
       font-size: 6px;
-      color: #0f6;
+      color: #16a34a;
     }
 
-    .week-num { font-size: 10px; }
-    .week-label { font-size: 5px; color: rgba(255,255,255,0.3); }
-    .week-btn.active .week-label { color: rgba(0,255,255,0.6); }
+    .week-num { font-size: 11px; }
+    .week-label { font-size: 5px; color: #c4b5fd; }
+    .week-btn.active .week-label { color: #7c3aed; }
+    .week-btn.done .week-label { color: #86efac; }
 
     /* ── Week detail ───────────────────────────── */
     .week-detail {
-      border: 2px solid rgba(0,255,255,0.25);
-      background: rgba(0,10,20,0.6);
-      backdrop-filter: blur(12px);
+      border: 2px solid #ddd6fe;
+      background: #fff;
+      box-shadow: 4px 4px 0 #e9d5ff;
       padding: 28px;
       margin-bottom: 32px;
     }
@@ -247,13 +258,13 @@
     .week-title {
       font-size: clamp(9px, 2vw, 13px);
       line-height: 1.8;
-      color: #0ff;
-      text-shadow: 2px 2px 0 #003333;
+      color: #4c1d95;
+      text-shadow: 2px 2px 0 #ede9fe;
     }
 
     .week-subtitle {
       font-size: 7px;
-      color: rgba(255,255,255,0.5);
+      color: #9d7ec5;
       margin-top: 8px;
       line-height: 2;
     }
@@ -262,19 +273,20 @@
       font-family: 'Press Start 2P', monospace;
       font-size: 6px;
       padding: 8px 12px;
-      background: transparent;
-      border: 2px solid rgba(0,255,100,0.4);
-      color: rgba(0,255,100,0.6);
+      background: #f0fdf4;
+      border: 2px solid #86efac;
+      color: #16a34a;
       cursor: pointer;
       white-space: nowrap;
+      box-shadow: 2px 2px 0 #bbf7d0;
       transition: all 0.1s;
       flex-shrink: 0;
     }
-    .mark-done-btn:hover { background: rgba(0,255,100,0.1); border-color: #0f6; color: #0f6; }
-    .mark-done-btn.done { background: rgba(0,255,100,0.15); border-color: #0f6; color: #0f6; }
+    .mark-done-btn:hover { background: #dcfce7; border-color: #4ade80; }
+    .mark-done-btn.done { background: #dcfce7; border-color: #22c55e; color: #15803d; }
 
     /* ── Timeline ──────────────────────────────── */
-    .timeline { display: flex; flex-direction: column; gap: 4px; }
+    .timeline { display: flex; flex-direction: column; gap: 6px; }
 
     .timeline-block {
       display: flex;
@@ -284,18 +296,18 @@
 
     .time-label {
       font-size: 6px;
-      color: rgba(255,255,255,0.35);
+      color: #c4b5fd;
       width: 56px;
       flex-shrink: 0;
       padding-top: 14px;
       text-align: right;
-      letter-spacing: 0.05em;
+      letter-spacing: 0.04em;
     }
 
     .timeline-bar {
       width: 3px;
       flex-shrink: 0;
-      background: rgba(0,255,255,0.2);
+      background: #ddd6fe;
       position: relative;
     }
     .timeline-bar::before {
@@ -305,47 +317,54 @@
       left: -3px;
       width: 9px;
       height: 9px;
-      background: #0ff;
-      image-rendering: pixelated;
+      background: #a855f7;
     }
 
     .lesson-card {
       flex: 1;
       padding: 14px 16px;
-      border: 1px solid rgba(255,255,255,0.1);
-      background: rgba(255,255,255,0.03);
-      margin-bottom: 4px;
+      border: 2px solid #e9d5ff;
+      background: #fdf6ff;
       cursor: pointer;
-      transition: background 0.15s, border-color 0.15s;
+      transition: all 0.15s;
+      box-shadow: 2px 2px 0 #ede9fe;
     }
-    .lesson-card:hover { background: rgba(255,255,255,0.06); border-color: rgba(0,255,255,0.3); }
+    .lesson-card:hover {
+      border-color: #c084fc;
+      background: #fdf4ff;
+      box-shadow: 3px 3px 0 #ddd6fe;
+    }
 
     .lesson-name {
       font-size: 7px;
-      color: #fff;
+      color: #4c1d95;
       margin-bottom: 8px;
       line-height: 1.8;
     }
 
     .lesson-body {
       font-size: 6px;
-      color: rgba(255,255,255,0.55);
-      line-height: 2.2;
+      color: #6d5a8a;
+      line-height: 2.4;
       display: none;
       margin-top: 10px;
-      border-top: 1px solid rgba(255,255,255,0.08);
+      border-top: 2px solid #ede9fe;
       padding-top: 10px;
     }
 
     .lesson-card.open .lesson-body { display: block; }
-    .lesson-card.open { border-color: rgba(0,255,255,0.4); background: rgba(0,255,255,0.04); }
+    .lesson-card.open {
+      border-color: #a855f7;
+      background: #fdf4ff;
+      box-shadow: 3px 3px 0 #c4b5fd;
+    }
 
     .lesson-toggle {
       font-size: 6px;
-      color: rgba(0,255,255,0.5);
+      color: #c084fc;
       margin-top: 4px;
     }
-    .lesson-card.open .lesson-toggle { color: rgba(0,255,255,0.8); }
+    .lesson-card.open .lesson-toggle { color: #7c3aed; }
 
     .break-block {
       display: flex;
@@ -356,24 +375,31 @@
     .break-label {
       flex: 1;
       font-size: 6px;
-      color: rgba(255,255,255,0.25);
+      color: #f9a8d4;
       padding: 8px 16px;
-      border: 1px dashed rgba(255,255,255,0.1);
+      border: 2px dashed #fce7f3;
       letter-spacing: 0.1em;
       text-align: center;
+      background: #fff0f8;
     }
 
     .wrap-block {
-      margin-top: 4px;
-      padding: 10px 16px;
-      border: 1px solid rgba(255,255,255,0.08);
-      border-left: 3px solid rgba(0,255,255,0.4);
+      flex: 1;
+      padding: 12px 16px;
+      border: 2px solid #fde68a;
+      border-left: 4px solid #fbbf24;
+      background: #fffbeb;
+      box-shadow: 2px 2px 0 #fef3c7;
       font-size: 6px;
-      color: rgba(255,255,255,0.45);
-      line-height: 2;
+      color: #92400e;
+      line-height: 2.2;
     }
 
-    .wrap-title { color: rgba(0,255,255,0.6); margin-bottom: 4px; font-size: 6px; }
+    .wrap-title {
+      color: #d97706;
+      margin-bottom: 6px;
+      font-size: 6px;
+    }
 
     /* ── Nav arrows ────────────────────────────── */
     .week-nav-arrows {
@@ -387,43 +413,46 @@
       font-family: 'Press Start 2P', monospace;
       font-size: 7px;
       padding: 10px 20px;
-      background: rgba(255,255,255,0.05);
-      border: 2px solid rgba(255,255,255,0.2);
-      color: rgba(255,255,255,0.6);
+      background: #fff;
+      border: 2px solid #ddd6fe;
+      color: #7c3aed;
       cursor: pointer;
+      box-shadow: 3px 3px 0 #e9d5ff;
       transition: all 0.1s;
     }
-    .nav-arrow:hover { border-color: #0ff; color: #fff; }
-    .nav-arrow:disabled { opacity: 0.2; cursor: not-allowed; }
+    .nav-arrow:hover {
+      border-color: #a855f7;
+      background: #fdf4ff;
+      box-shadow: 3px 3px 0 #ddd6fe;
+    }
+    .nav-arrow:disabled { opacity: 0.25; cursor: not-allowed; box-shadow: none; }
 
     /* ── Progress bar ──────────────────────────── */
-    .progress-wrap {
-      margin-bottom: 32px;
-    }
+    .progress-wrap { margin-bottom: 32px; }
+
     .progress-label {
       font-size: 6px;
-      color: rgba(255,255,255,0.4);
+      color: #9d7ec5;
       margin-bottom: 8px;
-      letter-spacing: 0.08em;
+      letter-spacing: 0.06em;
     }
+
     .progress-track {
-      height: 8px;
-      background: rgba(255,255,255,0.08);
-      border: 1px solid rgba(255,255,255,0.12);
-      image-rendering: pixelated;
+      height: 10px;
+      background: #ede9fe;
+      border: 2px solid #ddd6fe;
     }
+
     .progress-fill {
       height: 100%;
-      background: #0ff;
-      box-shadow: 0 0 8px rgba(0,255,255,0.5);
-      transition: width 0.3s;
-      image-rendering: pixelated;
+      background: linear-gradient(90deg, #c084fc, #f472b6);
+      transition: width 0.4s;
     }
 
     /* ── Mobile ────────────────────────────────── */
     @media (max-width: 600px) {
       .page { padding: 28px 14px 60px; }
-      .week-btn { width: 42px; height: 42px; font-size: 7px; }
+      .week-btn { width: 44px; height: 44px; font-size: 7px; }
       .week-num { font-size: 9px; }
       .week-detail { padding: 16px; }
       .time-label { display: none; }
@@ -438,6 +467,7 @@
 
   <!-- Header -->
   <div class="header">
+    <div class="stars">* * * * *</div>
     <div class="tier-badge">TIER 1 — SPARK</div>
     <h1>AI EXPLORERS+</h1>
     <div class="tagline">
