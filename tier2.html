@@ -1,0 +1,1038 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Algorhythm — Tier 2 Build</title>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg:       #0d1117;
+      --surface:  #161b22;
+      --surface2: #1c2128;
+      --border:   #30363d;
+      --text:     #e6edf3;
+      --dim:      #7d8590;
+      --blue:     #58a6ff;
+      --green:    #3fb950;
+      --purple:   #bc8cff;
+      --orange:   #f0883e;
+      --red:      #ff7b72;
+      --gold:     #e3b341;
+      --pixel:    'Press Start 2P', monospace;
+      --body:     'Inter', system-ui, sans-serif;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    html, body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--body);
+      overflow-x: hidden;
+      line-height: 1.6;
+    }
+
+    /* Subtle dot grid */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: radial-gradient(circle, rgba(88,166,255,0.06) 1px, transparent 1px);
+      background-size: 28px 28px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .page {
+      position: relative;
+      z-index: 1;
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 40px 24px 100px;
+    }
+
+    /* ── Top nav ───────────────────────────────── */
+    .topnav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 56px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .back {
+      font-family: var(--pixel);
+      font-size: 6px;
+      color: var(--dim);
+      text-decoration: none;
+      letter-spacing: 0.1em;
+      transition: color 0.2s;
+    }
+    .back:hover { color: var(--text); }
+    .back::before { content: '◀ '; }
+
+    .tier-switch {
+      display: flex;
+      gap: 8px;
+    }
+    .tier-pill {
+      font-family: var(--pixel);
+      font-size: 6px;
+      letter-spacing: 0.08em;
+      padding: 6px 12px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--dim);
+      text-decoration: none;
+      transition: all 0.15s;
+    }
+    .tier-pill.active {
+      border-color: var(--blue);
+      color: var(--blue);
+      background: rgba(88,166,255,0.08);
+    }
+    .tier-pill:hover { border-color: var(--blue); color: var(--blue); }
+
+    /* ── Hero ──────────────────────────────────── */
+    .hero { margin-bottom: 48px; }
+
+    .tier-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-family: var(--pixel);
+      font-size: 7px;
+      letter-spacing: 0.12em;
+      color: var(--blue);
+      border: 1px solid rgba(88,166,255,0.4);
+      padding: 6px 14px;
+      margin-bottom: 20px;
+      background: rgba(88,166,255,0.06);
+    }
+    .tier-badge::before {
+      content: '';
+      width: 6px; height: 6px;
+      background: var(--blue);
+      display: inline-block;
+      box-shadow: 0 0 8px var(--blue);
+    }
+
+    .hero h1 {
+      font-family: var(--pixel);
+      font-size: clamp(16px, 3.5vw, 28px);
+      letter-spacing: 0.04em;
+      line-height: 1.5;
+      color: var(--text);
+      margin-bottom: 14px;
+    }
+
+    .hero .tagline {
+      font-size: 14px;
+      color: var(--dim);
+      font-weight: 500;
+      letter-spacing: 0.02em;
+    }
+    .hero .tagline span { color: var(--blue); }
+
+    /* ── Info row ──────────────────────────────── */
+    .info-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 48px;
+    }
+
+    .info-chip {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      padding: 6px 12px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--dim);
+    }
+    .info-chip b { color: var(--text); font-weight: 600; }
+
+    /* ── Module overview ───────────────────────── */
+    .modules-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      gap: 10px;
+      margin-bottom: 48px;
+    }
+
+    .module-card {
+      padding: 14px 16px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--mod-color, var(--blue));
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .module-card:hover { background: var(--surface2); border-color: var(--mod-color, var(--blue)); }
+
+    .module-num {
+      font-family: var(--pixel);
+      font-size: 7px;
+      color: var(--mod-color, var(--blue));
+      margin-bottom: 6px;
+      letter-spacing: 0.06em;
+    }
+
+    .module-name {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text);
+      line-height: 1.4;
+      margin-bottom: 4px;
+    }
+
+    .module-weeks {
+      font-size: 10px;
+      color: var(--dim);
+    }
+
+    /* ── Skills ────────────────────────────────── */
+    .skills { margin-bottom: 48px; }
+
+    .section-label {
+      font-family: var(--pixel);
+      font-size: 8px;
+      letter-spacing: 0.1em;
+      color: var(--dim);
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .section-label::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    .skills-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .skill-tag {
+      font-size: 11px;
+      font-family: 'Courier New', monospace;
+      padding: 5px 10px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--green);
+      cursor: pointer;
+      transition: all 0.1s;
+      user-select: none;
+    }
+    .skill-tag::before { content: '$ '; color: var(--dim); }
+    .skill-tag:hover { border-color: var(--green); background: rgba(63,185,80,0.06); }
+    .skill-tag.done {
+      color: var(--dim);
+      text-decoration: line-through;
+      background: transparent;
+    }
+    .skill-tag.done::before { color: var(--border); }
+
+    /* ── Progress ──────────────────────────────── */
+    .progress-section { margin-bottom: 48px; }
+
+    .progress-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 10px;
+    }
+    .progress-meta .label {
+      font-family: var(--pixel);
+      font-size: 7px;
+      color: var(--dim);
+      letter-spacing: 0.08em;
+    }
+    .progress-meta .count {
+      font-family: var(--pixel);
+      font-size: 9px;
+      color: var(--blue);
+    }
+
+    .progress-track {
+      height: 4px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      position: relative;
+      margin-bottom: 16px;
+    }
+    .progress-fill {
+      position: absolute;
+      top: 0; left: 0; bottom: 0;
+      background: linear-gradient(90deg, var(--blue), var(--purple));
+      transition: width 0.4s;
+      box-shadow: 0 0 8px rgba(88,166,255,0.4);
+    }
+
+    /* Week dots on progress bar */
+    .week-dots {
+      display: flex;
+      gap: 6px;
+    }
+
+    .week-dot-btn {
+      flex: 1;
+      height: 36px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--dim);
+      font-family: var(--pixel);
+      font-size: 7px;
+      cursor: pointer;
+      transition: all 0.12s;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .week-dot-btn:hover { border-color: var(--blue); color: var(--text); }
+    .week-dot-btn.active {
+      border-color: var(--mod-color, var(--blue));
+      color: var(--mod-color, var(--blue));
+      background: rgba(88,166,255,0.07);
+      box-shadow: 0 0 10px rgba(88,166,255,0.15);
+    }
+    .week-dot-btn.done::after {
+      content: '';
+      position: absolute;
+      top: 3px; right: 3px;
+      width: 5px; height: 5px;
+      background: var(--green);
+      border-radius: 50%;
+    }
+
+    /* ── Week detail ───────────────────────────── */
+    .week-detail {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-top: 2px solid var(--mod-color, var(--blue));
+      padding: 28px;
+      margin-bottom: 24px;
+    }
+
+    .mission-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      flex-wrap: wrap;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .mission-label {
+      font-family: var(--pixel);
+      font-size: 7px;
+      color: var(--mod-color, var(--blue));
+      letter-spacing: 0.1em;
+      margin-bottom: 8px;
+    }
+
+    .mission-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text);
+      line-height: 1.3;
+    }
+
+    .mission-sub {
+      font-size: 12px;
+      color: var(--dim);
+      margin-top: 4px;
+    }
+
+    .done-btn {
+      font-family: var(--pixel);
+      font-size: 6px;
+      padding: 8px 14px;
+      background: transparent;
+      border: 1px solid var(--green);
+      color: var(--green);
+      cursor: pointer;
+      letter-spacing: 0.06em;
+      transition: all 0.1s;
+      flex-shrink: 0;
+      white-space: nowrap;
+    }
+    .done-btn:hover { background: rgba(63,185,80,0.08); }
+    .done-btn.done { background: rgba(63,185,80,0.1); }
+
+    /* ── Lesson blocks ─────────────────────────── */
+    .lessons { display: flex; flex-direction: column; gap: 2px; }
+
+    .time-row {
+      display: flex;
+      gap: 16px;
+      align-items: stretch;
+    }
+
+    .time-col {
+      width: 64px;
+      flex-shrink: 0;
+      font-size: 10px;
+      font-family: 'Courier New', monospace;
+      color: var(--dim);
+      padding-top: 16px;
+      text-align: right;
+    }
+
+    .time-line {
+      width: 1px;
+      flex-shrink: 0;
+      background: var(--border);
+      position: relative;
+    }
+    .time-line::before {
+      content: '';
+      position: absolute;
+      top: 14px; left: -3px;
+      width: 7px; height: 7px;
+      background: var(--mod-color, var(--blue));
+      box-shadow: 0 0 6px var(--mod-color, var(--blue));
+    }
+
+    .lesson-block {
+      flex: 1;
+      padding: 14px 18px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      margin-bottom: 2px;
+      cursor: pointer;
+      transition: border-color 0.12s, background 0.12s;
+    }
+    .lesson-block:hover { border-color: rgba(88,166,255,0.4); }
+    .lesson-block.open {
+      border-color: var(--mod-color, var(--blue));
+      background: rgba(88,166,255,0.03);
+    }
+
+    .lesson-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .lesson-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+      line-height: 1.4;
+    }
+
+    .lesson-toggle {
+      font-size: 10px;
+      color: var(--dim);
+      flex-shrink: 0;
+      margin-top: 2px;
+      transition: color 0.1s;
+    }
+    .lesson-block.open .lesson-toggle { color: var(--blue); }
+
+    .tool-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 8px;
+    }
+
+    .tool-tag {
+      font-size: 9px;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      padding: 2px 8px;
+      background: rgba(88,166,255,0.08);
+      border: 1px solid rgba(88,166,255,0.2);
+      color: var(--blue);
+    }
+
+    .lesson-body {
+      display: none;
+      margin-top: 14px;
+      padding-top: 14px;
+      border-top: 1px solid var(--border);
+      font-size: 13px;
+      color: var(--dim);
+      line-height: 1.8;
+    }
+    .lesson-block.open .lesson-body { display: block; }
+
+    .lesson-body b {
+      color: var(--text);
+      font-weight: 600;
+    }
+
+    /* Callout inside lesson body */
+    .callout {
+      margin-top: 12px;
+      padding: 10px 14px;
+      border-left: 3px solid var(--gold);
+      background: rgba(227,179,65,0.05);
+      font-size: 12px;
+      color: var(--text);
+    }
+    .callout-label {
+      font-family: var(--pixel);
+      font-size: 6px;
+      color: var(--gold);
+      letter-spacing: 0.08em;
+      margin-bottom: 4px;
+    }
+
+    /* Break row */
+    .break-row {
+      display: flex;
+      gap: 16px;
+      align-items: center;
+      margin: 2px 0;
+    }
+    .break-bar {
+      flex: 1;
+      padding: 6px 18px;
+      font-size: 10px;
+      color: var(--border);
+      letter-spacing: 0.12em;
+      font-family: 'Courier New', monospace;
+      text-align: center;
+    }
+
+    /* Wrap block */
+    .wrap-row { display: flex; gap: 16px; margin-top: 2px; }
+    .wrap-block {
+      flex: 1;
+      padding: 12px 18px;
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--gold);
+      background: rgba(227,179,65,0.04);
+    }
+    .wrap-label {
+      font-family: var(--pixel);
+      font-size: 6px;
+      color: var(--gold);
+      letter-spacing: 0.08em;
+      margin-bottom: 6px;
+    }
+    .wrap-text {
+      font-size: 12px;
+      color: var(--dim);
+      line-height: 1.7;
+      font-style: italic;
+    }
+
+    /* ── Nav arrows ────────────────────────────── */
+    .nav-arrows {
+      display: flex;
+      gap: 10px;
+      justify-content: space-between;
+    }
+
+    .nav-arrow {
+      font-family: var(--pixel);
+      font-size: 7px;
+      padding: 10px 20px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--dim);
+      cursor: pointer;
+      letter-spacing: 0.06em;
+      transition: all 0.12s;
+    }
+    .nav-arrow:hover { border-color: var(--blue); color: var(--blue); }
+    .nav-arrow:disabled { opacity: 0.2; cursor: not-allowed; }
+
+    /* ── Responsive ────────────────────────────── */
+    @media (max-width: 640px) {
+      .page { padding: 24px 14px 80px; }
+      .time-col, .time-line { display: none; }
+      .week-detail { padding: 16px; }
+      .mission-title { font-size: 15px; }
+      .week-dot-btn { font-size: 6px; height: 32px; }
+      .modules-grid { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+<div class="page">
+
+  <!-- Top nav -->
+  <div class="topnav">
+    <a href="index.html" class="back">HOME</a>
+    <div class="tier-switch">
+      <a href="curriculum.html" class="tier-pill">TIER 1</a>
+      <a href="tier2.html" class="tier-pill active">TIER 2</a>
+    </div>
+  </div>
+
+  <!-- Hero -->
+  <div class="hero">
+    <div class="tier-badge">TIER 2 — BUILD</div>
+    <h1>AI EXPLORERS+</h1>
+    <div class="tagline">You know what AI is. <span>Now build it.</span></div>
+  </div>
+
+  <!-- Info row -->
+  <div class="info-row">
+    <div class="info-chip">Ages <b>10–13</b> / Grades <b>5–8</b></div>
+    <div class="info-chip"><b>10 Weeks</b> · 75 min/session</div>
+    <div class="info-chip">Venue <b>University of Waterloo</b></div>
+    <div class="info-chip">Prereq <b>Tier 1 or equivalent</b></div>
+  </div>
+
+  <!-- Module overview -->
+  <div class="section-label">MODULES</div>
+  <div class="modules-grid" id="modules-grid"></div>
+
+  <!-- Skills -->
+  <div class="skills">
+    <div class="section-label">SKILLS YOU'LL UNLOCK</div>
+    <div class="skills-grid" id="skills-grid"></div>
+  </div>
+
+  <!-- Progress -->
+  <div class="progress-section">
+    <div class="section-label">PROGRESS</div>
+    <div class="progress-meta">
+      <span class="label">WEEKS COMPLETED</span>
+      <span class="count" id="progress-count">0 / 10</span>
+    </div>
+    <div class="progress-track">
+      <div class="progress-fill" id="progress-fill" style="width:0%"></div>
+    </div>
+    <div class="week-dots" id="week-dots"></div>
+  </div>
+
+  <!-- Week detail -->
+  <div class="week-detail" id="week-detail"></div>
+
+  <!-- Nav arrows -->
+  <div class="nav-arrows">
+    <button class="nav-arrow" id="prev-btn" onclick="changeWeek(-1)">◀ PREV WEEK</button>
+    <button class="nav-arrow" id="next-btn" onclick="changeWeek(1)">NEXT WEEK ▶</button>
+  </div>
+
+</div>
+
+<script>
+// ── Module definitions ────────────────────────────────────────────────────────
+const MODULES = [
+  { id:'M1', name:'AI Systems & Architecture', weeks:'Weeks 1–2', color:'#58a6ff' },
+  { id:'M2', name:'Data Science Foundations',  weeks:'Week 3',    color:'#bc8cff' },
+  { id:'M3', name:'Build with Machine Learning', weeks:'Weeks 4–5', color:'#3fb950' },
+  { id:'M4', name:'Vision & Language',          weeks:'Week 6',    color:'#f0883e' },
+  { id:'M5', name:'Ethics & Accountability',    weeks:'Week 7',    color:'#ff7b72' },
+  { id:'M6', name:'Capstone Project',           weeks:'Weeks 8–10', color:'#e3b341' },
+];
+
+const SKILLS = [
+  'trace_ai_pipeline()',
+  'load_dataset()',
+  'clean_data()',
+  'train_classifier()',
+  'evaluate_accuracy()',
+  'compare_approaches()',
+  'audit_for_bias()',
+  'write_model_card()',
+  'define_problem()',
+  'ship_prototype()',
+];
+
+// ── Week data ─────────────────────────────────────────────────────────────────
+const weeks = [
+  {
+    num: 1,
+    mod: 'M1',
+    title: 'The AI Stack',
+    sub: 'Module 1 — AI Systems & Architecture · Week 1 of 2',
+    lessons: [
+      {
+        time: '0–30 MIN',
+        title: 'Dissect Three Real AI Products',
+        tools: ['GOOGLE TRANSLATE', 'SPOTIFY', 'GMAIL SPAM FILTER'],
+        body: `<b>You can't build what you don't understand.</b> Working in pairs, pick one of the three products assigned to your table. Map it on the whiteboard using the AI Stack template: <b>Input → Features → Model → Output → Feedback loop.</b><br><br>For each stage: what data goes in? What does the model actually learn? What happens when it's wrong — does the system correct itself?<br><br>You'll find that "AI" in all three cases is less magic and more pattern-matching at scale. The scary part isn't the tech; it's how the feedback loops amplify whatever the model already believes.`,
+        callout: { label: 'CHALLENGE', text: 'Find an edge case where each product fails. Map why using your stack diagram. Bring your failure case to the share-out.' }
+      },
+      {
+        time: '35–70 MIN',
+        title: 'AI Hunt: Spot It in the Wild',
+        tools: ['YOUR PHONE'],
+        body: `Open your phone. You have 10 minutes to find 5 features on any app that are powered by AI. Be specific — not just "TikTok has AI" but "TikTok's For You algorithm is a collaborative filtering model trained on watch time and re-watch signals."<br><br>Share out. Facilitator keeps a running list on the board. By the end, the class has a map of AI in daily life with enough specificity to actually understand how each piece works.`,
+        callout: { label: 'GOING DEEPER', text: 'For each feature you found: who trained that model? On whose data? With whose permission? These questions don\'t have easy answers — but asking them is the whole point of Module 5.' }
+      },
+    ],
+    wrap: 'Every AI system is just: data → pattern → prediction → feedback. Everything else is details. What surprised you most in today\'s map?'
+  },
+  {
+    num: 2,
+    mod: 'M1',
+    title: 'Neural Networks Without the Math',
+    sub: 'Module 1 — AI Systems & Architecture · Week 2 of 2',
+    lessons: [
+      {
+        time: '0–30 MIN',
+        title: 'TensorFlow Playground: No Code Required',
+        tools: ['TENSORFLOW PLAYGROUND', 'LAPTOP'],
+        body: `Open Tensorflow Playground (playground.tensorflow.org). You'll see a browser-based neural network with sliders for neurons, layers, and activation functions.<br><br>Start with 1 neuron, 1 layer, linear activation. Try to classify the spiral dataset. It fails — because a straight line can't separate a spiral.<br><br>Now add layers. Watch the decision boundary in real time as the network bends and twists its way toward a solution. The loss curve drops. The regions of color sharpen.<br><br><b>Key question:</b> at what point does adding more neurons stop helping? Try it and find out.`,
+        callout: { label: 'EXPERIMENT', text: 'Try the XOR problem with 1 layer vs 2 layers. Record your observations: how many neurons did it take to solve it? What does this tell you about depth vs width?' }
+      },
+      {
+        time: '35–70 MIN',
+        title: 'You ARE the Neuron',
+        tools: ['PRINTED WORKSHEETS'],
+        body: `Paper activity: the class splits into groups of 5. Each person is a neuron. You receive inputs (numbers on cards), multiply them by your assigned weight, add your bias, and pass the sum through a simple step function (positive → pass a 1; negative → pass a 0).<br><br>The group tries to classify "cat photo" vs "not cat photo" using a 3-layer network simulated by people passing slips of paper.<br><br>After 2 rounds: adjust the weights by hand (the facilitator tells you whether the output was right or wrong) and run the network again. This manual process is what gradient descent automates — just much, much faster.`,
+        callout: { label: 'CONNECT', text: 'The "adjust weights based on error" step you just did by hand is backpropagation. Every ChatGPT response was shaped by this process running billions of times on massive datasets.' }
+      },
+    ],
+    wrap: 'A neural network is just a lot of multiplications, additions, and adjustments. What made it click for you? What\'s still fuzzy?'
+  },
+  {
+    num: 3,
+    mod: 'M2',
+    title: 'Data in the Wild',
+    sub: 'Module 2 — Data Science Foundations · Week 3',
+    lessons: [
+      {
+        time: '0–30 MIN',
+        title: 'Load a Real Dataset — Then Break It',
+        tools: ['GOOGLE SHEETS', 'TITANIC CSV'],
+        body: `Open the Titanic dataset in Google Sheets (link provided). 891 passengers, 12 columns: age, fare, class, sex, survived, and more.<br><br>First 5 minutes: just look. What do you notice? What's missing? What looks wrong?<br><br>Now answer these questions <b>without looking up the answers:</b><br>• What's the average age of survivors vs non-survivors?<br>• Does ticket class predict survival? By how much?<br>• Why are 177 age values missing — and does it matter which ones are missing?<br><br>Use formulas: AVERAGE, COUNTIF, AVERAGEIF. No plugins, no code. Just spreadsheet thinking.`,
+        callout: { label: 'KEY INSIGHT', text: 'Missing data is rarely random. In the Titanic dataset, missing ages cluster in a specific passenger class. That pattern IS data — and if you ignore it, your model learns the wrong thing.' }
+      },
+      {
+        time: '35–70 MIN',
+        title: 'Clean It, Chart It, Tell a Story',
+        tools: ['GOOGLE SHEETS'],
+        body: `Each pair gets a different messy dataset (weather data, school grades, sports stats). Your job:<br><br>1. <b>Audit:</b> find at least 3 data quality problems (missing values, impossible numbers, wrong types, duplicates)<br>2. <b>Fix:</b> decide what to do with each problem — delete row? fill with median? flag it?<br>3. <b>Chart:</b> make the clearest possible chart that answers one question about the data<br>4. <b>Pitch:</b> 60-second verbal "data story" to the group — what did you find, what would you tell someone who needs to make a decision based on this data?`,
+        callout: { label: 'REMEMBER', text: '"Garbage in, garbage out" isn\'t just a saying — a model trained on bad data will learn bad patterns with high confidence. Cleaning data is often 80% of the real work in any ML project.' }
+      },
+    ],
+    wrap: 'Before you train any model, you need to understand your data deeply. What was the most surprising thing in your dataset today?'
+  },
+  {
+    num: 4,
+    mod: 'M3',
+    title: 'Build Your First Real Classifier',
+    sub: 'Module 3 — Build with Machine Learning · Week 4 of 2',
+    lessons: [
+      {
+        time: '0–30 MIN',
+        title: 'Teachable Machine: Level Up',
+        tools: ['TEACHABLE MACHINE', 'WEBCAM'],
+        body: `You've seen Teachable Machine before. Today you're using it like an engineer, not a student.<br><br>Train a 3-class image classifier on something that matters to you — sign language letters, hand signals for your own game, object types. Aim for at least 50 examples per class.<br><br>When you're done training: don't just test the obvious cases. <b>Intentionally try to break it.</b> Unusual lighting? Rotated? Similar-looking objects? Different backgrounds? Document every failure.<br><br>Export your confidence scores for 10 test images. Build a tiny table: image, predicted class, confidence %, correct?`,
+        callout: { label: 'ENGINEER MINDSET', text: 'A 95% training accuracy means nothing if your test accuracy is 60%. The gap between those two numbers is called overfitting — and it\'s the most common real-world failure mode in ML.' }
+      },
+      {
+        time: '35–70 MIN',
+        title: 'What Is Overfitting — and Can You Cause It on Purpose?',
+        tools: ['TEACHABLE MACHINE'],
+        body: `Train the same classifier twice:<br><br><b>Version A:</b> 3 examples per class (intentionally tiny)<br><b>Version B:</b> 50+ examples per class, varied angles, lighting, backgrounds<br><br>Test both on the same 10 held-out images. Record accuracy. Present your results to the group: how different were they? Can you explain WHY using what you learned about training data last week?<br><br>Bonus: swap your trained models with another pair. Can you fool their model? What does this reveal about where their training data fell short?`,
+        callout: { label: 'TAKEAWAY', text: 'More data helps. Diverse data helps more. And the only way to know if your model actually works is to test it on data it has never seen before.' }
+      },
+    ],
+    wrap: 'What would you need to do to make your classifier good enough to actually use in a real product? How much data? What edge cases?'
+  },
+  {
+    num: 5,
+    mod: 'M3',
+    title: 'Text Classification: Rules vs ML',
+    sub: 'Module 3 — Build with Machine Learning · Week 5 of 2',
+    lessons: [
+      {
+        time: '0–30 MIN',
+        title: 'Build a Rules-Based Sentiment Classifier',
+        tools: ['GOOGLE SHEETS'],
+        body: `Before machine learning, people wrote rules. Let's do that first.<br><br>You get 20 product reviews (mix of positive and negative). Without any ML, write a set of rules in a spreadsheet to classify each one: <i>if the review contains "great" OR "love" → positive; if it contains "terrible" OR "waste" → negative</i>.<br><br>Add as many rules as you need. Test your ruleset. What's your accuracy on the 20 reviews? What's your accuracy on 10 new reviews you haven't seen yet?<br><br>Keep track of every review your rules got wrong. You'll need that list in part 2.`,
+        callout: { label: 'SPOILER', text: 'Your rules will probably hit ~70-80% on training data and drop on new data. The edge cases that break your rules reveal exactly what ML is designed to handle.' }
+      },
+      {
+        time: '35–70 MIN',
+        title: 'Same Task, ML Approach — Then Compare',
+        tools: ['ML4KIDS', 'TEACHABLE MACHINE TEXT'],
+        body: `Now train a text classifier on the same 20 reviews using ML4Kids or Teachable Machine's text mode. Use the same training/test split.<br><br>Test it on the same 10 new reviews. Compare:<br>• Accuracy (rules vs ML)<br>• Speed to build (how long did each take?)<br>• Ability to handle sarcasm and context<br>• Ease of updating when new patterns appear<br><br>Build a simple decision framework as a group: <b>when would you use rules? when would you use ML?</b> There's no single right answer — the goal is to be able to justify your choice.`,
+        callout: { label: 'REAL WORLD', text: 'Most production systems combine both: rules handle clear-cut cases fast and cheaply; ML handles ambiguous cases. Neither alone is usually best.' }
+      },
+    ],
+    wrap: 'Rules are fast and explainable. ML handles complexity but is a black box. Which would you trust more if the stakes were high?'
+  },
+  {
+    num: 6,
+    mod: 'M4',
+    title: 'What Can AI See? What Can AI Read?',
+    sub: 'Module 4 — Vision & Language · Week 6',
+    lessons: [
+      {
+        time: '0–30 MIN',
+        title: 'Computer Vision: Under the Hood',
+        tools: ['GOOGLE VISION API', 'YOLO DEMO', 'LAPTOP'],
+        body: `Upload 5 images to Google Vision API (demo link provided). For each image, read the labels and confidence scores it returns. Then try to confuse it: a photo of a hotdog from an unusual angle, a drawing of a dog, a dog that looks like a stuffed animal.<br><br>Discussion: Vision AI works by detecting patterns in pixel grids (recall Week 2). The model learned that "dog" correlates with certain pixel patterns across millions of training images — not because it understands dogs, but because those patterns reliably appeared next to the label "dog."<br><br>Watch the YOLO real-time demo: what can it detect at 30fps? What does it miss? What does it misclassify?`,
+        callout: { label: 'KEY QUESTION', text: 'If a model can identify 10,000 object types faster than any human, does it understand what it\'s looking at? What does "understanding" even mean for an AI system?' }
+      },
+      {
+        time: '35–70 MIN',
+        title: 'Language Models: The Next-Token Game',
+        tools: ['CHATGPT / CLAUDE'],
+        body: `Language models predict the next word. That\'s it. Everything else — reasoning, coding, creativity — is an emergent side effect of doing that prediction very well on a massive amount of text.<br><br>Your challenge: probe a language model systematically to find its limits.<br><br>1. Ask it a question where the factual answer changed after its training cutoff<br>2. Ask it to reason through a multi-step math problem and check each step<br>3. Ask it to describe its own limitations — then check if those limitations are real<br>4. Find one thing it confidently gets wrong (this is called a "hallucination")<br><br>Report back with your findings: what's the pattern in where it fails?`,
+        callout: { label: 'INSIGHT', text: 'LLMs don\'t "know" things the way you know things. They generate text that is statistically consistent with their training data. Impressive — and important to understand before trusting them with anything that matters.' }
+      },
+    ],
+    wrap: 'Both vision and language AI are pattern-matchers at enormous scale. What does that change about how you\'d use them — or trust them?'
+  },
+  {
+    num: 7,
+    mod: 'M5',
+    title: 'Ethics, Power & Accountability',
+    sub: 'Module 5 — Ethics & Accountability · Week 7',
+    lessons: [
+      {
+        time: '0–30 MIN',
+        title: 'Case Study: COMPAS and the Criminal Justice System',
+        tools: ['PRINTED CASE STUDY'],
+        body: `COMPAS is a risk-assessment algorithm used in US courts to predict whether a defendant will re-offend. It influences bail, sentencing, and parole decisions for real people.<br><br>ProPublica's 2016 investigation found: COMPAS was <b>twice as likely to falsely flag Black defendants as high-risk</b> compared to white defendants, while being more likely to miss white defendants who actually did re-offend.<br><br>The company responded: our algorithm is equally accurate across groups. Both things are true — and that's the point. <b>Equal accuracy ≠ equal impact.</b><br><br>In pairs: read the one-page summary. Then answer: who built this? Who decided to use it? Who gets to appeal the decision? Who bears the cost of errors?`,
+        callout: { label: 'YOUR AUDIT', text: 'Design three questions you would require any AI system to answer before it could be used in a decision that affects someone\'s life. Be specific enough that a "yes" or "no" answer would actually tell you something.' }
+      },
+      {
+        time: '35–70 MIN',
+        title: 'Build an AI Audit Framework',
+        tools: ['WHITEBOARD / POSTER'],
+        body: `Groups of 3-4. You are an independent AI audit team hired to evaluate a hypothetical AI hiring tool that ranks job applicants for a tech company.<br><br>You know: it was trained on 10 years of hiring data from the same company, it achieves 89% "accuracy" at predicting who gets hired, and it's now used to filter 95% of applications before any human sees them.<br><br>Build your audit report:<br>• What data was used and what biases might it encode?<br>• What does 89% accuracy actually mean — and for whom?<br>• Who's accountable when it makes a wrong decision?<br>• What would you recommend: deploy, fix first, or reject?<br><br>Present your audit findings. The class votes on the final recommendation.`,
+        callout: { label: 'TAKEAWAY', text: '"It\'s just an algorithm" is not a defense. The people who build, deploy, and profit from AI systems are responsible for what those systems do in the world.' }
+      },
+    ],
+    wrap: 'Would you use an AI system that\'s biased if it was still more accurate on average than a human? What does your answer depend on?'
+  },
+  {
+    num: 8,
+    mod: 'M6',
+    title: 'Define Your Problem',
+    sub: 'Module 6 — Capstone Project · Week 8 of 3',
+    lessons: [
+      {
+        time: '0–30 MIN',
+        title: 'Find a Problem Worth Solving',
+        tools: ['PROJECT BRIEF TEMPLATE'],
+        body: `The hardest part of any AI project is deciding what to build — and deciding whether AI is actually the right tool.<br><br>Individually: brainstorm 5 real problems you care about. They can be from school, your neighborhood, sports, music, anything. Don't filter yourself yet.<br><br>Now apply the filter:<br>• Does this problem have data — or could you create some?<br>• Would AI make this meaningfully better than existing solutions?<br>• Who benefits? Who might be harmed?<br>• Can you build a testable version in 2 weeks?<br><br>Narrow to 1 problem. Pair up with someone who picked a compatible problem. You'll be working together for the rest of the program.`,
+        callout: { label: 'GOOD AI PROBLEMS', text: 'Pattern recognition in lots of examples. Personalization at scale. Automation of repetitive classification. Bad AI problems: anything where the stakes are high, the data is thin, or you can\'t explain the decision.' }
+      },
+      {
+        time: '35–70 MIN',
+        title: 'Write Your Project Proposal',
+        tools: ['PROJECT BRIEF TEMPLATE'],
+        body: `Fill in the one-page project brief:<br><br><b>1. Problem statement</b> (1 sentence: who has what problem?)<br><b>2. Proposed AI solution</b> (what does your model do? input → output)<br><b>3. Data source</b> (where will your training data come from? how much can you collect in 2 weeks?)<br><b>4. Success metric</b> (how will you know if it works? what accuracy is "good enough"?)<br><b>5. Risk assessment</b> (what could go wrong? who could be harmed? how would you detect it?)<br><b>6. What you'll build</b> (Teachable Machine? ML4Kids? Scratch ML? A decision tree in Sheets?)<br><br>Peer review: swap briefs with another pair. Give written feedback on the single biggest gap you see.`,
+        callout: { label: 'FACILITATOR NOTE', text: 'Strong proposals are narrow and specific. "A model that classifies 3 types of plants using photos from our school garden" beats "an AI that improves the environment."' }
+      },
+    ],
+    wrap: 'A well-defined problem is already half-solved. What\'s the riskiest assumption in your proposal right now?'
+  },
+  {
+    num: 9,
+    mod: 'M6',
+    title: 'Build Sprint',
+    sub: 'Module 6 — Capstone Project · Week 9 of 3',
+    lessons: [
+      {
+        time: '0–40 MIN',
+        title: 'Build Day',
+        tools: ['TEACHABLE MACHINE', 'ML4KIDS', 'LAPTOP'],
+        body: `This is your main build session. You have 40 minutes to get as far as possible on your capstone project.<br><br>Facilitator will check in with every pair. When they reach you: be ready to show what you have, articulate what's blocking you, and ask a specific question.<br><br>If you finish your model early: start your model card (next activity) and begin preparing your 90-second demo script. If you're stuck: narrow your scope — a working 2-class model you understand beats a broken 5-class model you don't.`,
+        callout: { label: 'BUILD TIPS', text: 'Start with less data than you think you need — get it working first, then improve. Test early and often. Name your classes clearly. Save your project before anything else.' }
+      },
+      {
+        time: '45–70 MIN',
+        title: 'Write Your Model Card',
+        tools: ['MODEL CARD TEMPLATE'],
+        body: `A model card is documentation that travels with an AI model. It's how responsible developers tell users what the model can and can't do.<br><br>Fill in your model card:<br>• <b>What it does:</b> one sentence<br>• <b>Training data:</b> how many examples, where from, any gaps or biases<br>• <b>Performance:</b> accuracy on held-out test data (not training data)<br>• <b>Known failure modes:</b> what conditions make it fail?<br>• <b>Who it's designed for:</b> and who it might not work well for<br>• <b>What NOT to use it for:</b> explicit warnings<br><br>Mid-session share-out: each pair shares one sentence about what they built and one limitation they documented in their model card.`,
+        callout: { label: 'WHY MODEL CARDS', text: 'Google introduced model cards in 2018 to push for transparency in AI. A model without a model card is a model people can\'t evaluate — and can\'t trust.' }
+      },
+    ],
+    wrap: 'What\'s one thing that would make your model significantly better — and is it achievable before showcase day?'
+  },
+  {
+    num: 10,
+    mod: 'M6',
+    title: 'Showcase & Certificates',
+    sub: 'Module 6 — Capstone Project · Week 10 of 3',
+    lessons: [
+      {
+        time: '0–50 MIN',
+        title: 'Technical Showcase',
+        tools: ['YOUR PROJECT', 'MODEL CARD'],
+        body: `Open house. You'll demo your project to community judges — mentors from the University of Waterloo, industry partners, and GRFS community members.<br><br>Your 90-second demo covers:<br>1. What problem you solved and why it matters<br>2. A live demo of the model working (have a backup plan if the webcam fails)<br>3. Your accuracy number on held-out test data<br>4. One known limitation and how you'd address it with more time<br><br>Judges will ask real questions: "What would make this fail?" "Who could this harm?" "What's in your training data?" "Would you trust this in a real application?" — answer honestly, including "I don't know yet, but here's how I'd find out."`,
+        callout: { label: 'JUDGING CRITERIA', text: 'Judges are looking for clear thinking, not perfect accuracy. A 75%-accurate model you can explain and critique beats a 95%-accurate model you can\'t.' }
+      },
+      {
+        time: '55–75 MIN',
+        title: 'Certificate Ceremony + What\'s Next',
+        tools: [],
+        body: `Every student receives an <b>AI Explorer — Tier 2 Build certificate</b> with their name and project title.<br><br>Closing circle — each person shares:<br>• The most important thing they built this program<br>• The most important thing they changed their mind about<br>• One question they're leaving with that they didn't have before<br><br>Facilitator introduces Tier 3 — <b>Launch</b>: where students take a project from prototype to something real people outside this room can use, and confront what that actually means. Application process and timeline shared.`,
+        callout: { label: 'WHAT\'S NEXT', text: 'Tier 3 — Launch opens applications in 4 weeks. Priority access for Tier 2 graduates. If you want to build something real, that\'s where we do it.' }
+      },
+    ],
+    wrap: 'End of Tier 2 — Build. You built a functional ML model, audited an AI system for bias, and documented your work like a professional. What comes next?'
+  },
+];
+
+// ── State ─────────────────────────────────────────────────────────────────────
+let current = 0;
+const done = new Set(JSON.parse(localStorage.getItem('t2done') || '[]'));
+
+// ── Module colors ─────────────────────────────────────────────────────────────
+const modColor = {};
+MODULES.forEach(m => modColor[m.id] = m.color);
+
+function weekColor(w) { return modColor[w.mod] || '#58a6ff'; }
+
+// ── Build module cards ────────────────────────────────────────────────────────
+function buildModules() {
+  const grid = document.getElementById('modules-grid');
+  grid.innerHTML = MODULES.map((m, i) => `
+    <div class="module-card" style="--mod-color:${m.color}" onclick="jumpToMod('${m.id}')">
+      <div class="module-num">${m.id}</div>
+      <div class="module-name">${m.name}</div>
+      <div class="module-weeks">${m.weeks}</div>
+    </div>
+  `).join('');
+}
+
+function jumpToMod(mid) {
+  const idx = weeks.findIndex(w => w.mod === mid);
+  if (idx >= 0) selectWeek(idx);
+  document.getElementById('week-detail').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+// ── Build skills ──────────────────────────────────────────────────────────────
+function buildSkills() {
+  const saved = JSON.parse(localStorage.getItem('t2skills') || '[]');
+  document.getElementById('skills-grid').innerHTML = SKILLS.map(s => `
+    <div class="skill-tag ${saved.includes(s) ? 'done' : ''}" onclick="toggleSkill(this,'${s}')">${s}</div>
+  `).join('');
+}
+
+function toggleSkill(el, s) {
+  el.classList.toggle('done');
+  const saved = JSON.parse(localStorage.getItem('t2skills') || '[]');
+  const idx = saved.indexOf(s);
+  if (idx >= 0) saved.splice(idx, 1); else saved.push(s);
+  localStorage.setItem('t2skills', JSON.stringify(saved));
+}
+
+// ── Build week dots ───────────────────────────────────────────────────────────
+function buildDots() {
+  document.getElementById('week-dots').innerHTML = weeks.map((w, i) => `
+    <button class="week-dot-btn ${i === current ? 'active' : ''} ${done.has(i) ? 'done' : ''}"
+      style="--mod-color:${weekColor(w)}"
+      onclick="selectWeek(${i})">${w.num}</button>
+  `).join('');
+}
+
+// ── Build week detail ─────────────────────────────────────────────────────────
+function buildDetail() {
+  const w = weeks[current];
+  const color = weekColor(w);
+  const isDone = done.has(current);
+
+  document.getElementById('week-detail').style.setProperty('--mod-color', color);
+
+  document.getElementById('week-detail').innerHTML = `
+    <div class="mission-header">
+      <div>
+        <div class="mission-label">WEEK ${w.num} · ${w.mod}</div>
+        <div class="mission-title">${w.title}</div>
+        <div class="mission-sub">${w.sub}</div>
+      </div>
+      <button class="done-btn ${isDone ? 'done' : ''}" onclick="toggleDone()">
+        ${isDone ? '✓ COMPLETE' : 'MARK DONE'}
+      </button>
+    </div>
+
+    <div class="lessons">
+      ${w.lessons.map((l, i) => `
+        <div class="time-row">
+          <div class="time-col">${l.time}</div>
+          <div class="time-line"></div>
+          <div class="lesson-block" onclick="toggleLesson(this)">
+            <div class="lesson-top">
+              <div class="lesson-title">${l.title}</div>
+              <div class="lesson-toggle">▶ EXPAND</div>
+            </div>
+            ${l.tools.length ? `<div class="tool-tags">${l.tools.map(t=>`<span class="tool-tag">${t}</span>`).join('')}</div>` : ''}
+            <div class="lesson-body">
+              ${l.body}
+              ${l.callout ? `<div class="callout"><div class="callout-label">${l.callout.label}</div>${l.callout.text}</div>` : ''}
+            </div>
+          </div>
+        </div>
+        ${i < w.lessons.length - 1 ? `
+        <div class="break-row">
+          <div class="time-col"></div>
+          <div class="time-line" style="background:transparent"></div>
+          <div class="break-bar">— 5 MIN BREAK —</div>
+        </div>` : ''}
+      `).join('')}
+
+      <div class="wrap-row">
+        <div class="time-col">70 MIN</div>
+        <div class="time-line" style="background:rgba(88,166,255,0.15)"></div>
+        <div class="wrap-block">
+          <div class="wrap-label">CLOSING QUESTION</div>
+          <div class="wrap-text">${w.wrap}</div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  document.getElementById('prev-btn').disabled = current === 0;
+  document.getElementById('next-btn').disabled = current === weeks.length - 1;
+}
+
+// ── Progress ──────────────────────────────────────────────────────────────────
+function updateProgress() {
+  const pct = (done.size / 10) * 100;
+  document.getElementById('progress-fill').style.width = pct + '%';
+  document.getElementById('progress-count').textContent = `${done.size} / 10`;
+}
+
+// ── Controls ──────────────────────────────────────────────────────────────────
+function selectWeek(i) {
+  current = i;
+  buildDots();
+  buildDetail();
+  document.getElementById('week-detail').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function changeWeek(dir) {
+  const n = current + dir;
+  if (n >= 0 && n < weeks.length) selectWeek(n);
+}
+
+function toggleDone() {
+  if (done.has(current)) done.delete(current); else done.add(current);
+  localStorage.setItem('t2done', JSON.stringify([...done]));
+  buildDots();
+  buildDetail();
+  updateProgress();
+}
+
+function toggleLesson(el) {
+  el.classList.toggle('open');
+  el.querySelector('.lesson-toggle').textContent = el.classList.contains('open') ? '▼ COLLAPSE' : '▶ EXPAND';
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+buildModules();
+buildSkills();
+buildDots();
+buildDetail();
+updateProgress();
+</script>
+</body>
+</html>
