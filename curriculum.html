@@ -449,6 +449,48 @@
       transition: width 0.4s;
     }
 
+    /* ── Duck game ─────────────────────────────── */
+    .duck-section { margin-top: 8px; }
+
+    .duck-hint {
+      font-size: 6px;
+      color: #b8a0d0;
+      letter-spacing: 0.08em;
+      margin-bottom: 12px;
+      line-height: 2;
+    }
+
+    .duck-score-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .duck-score-label {
+      font-size: 7px;
+      color: #9d7ec5;
+      letter-spacing: 0.1em;
+    }
+
+    .duck-score {
+      font-size: 14px;
+      color: #7c3aed;
+      text-shadow: 2px 2px 0 #ddd6fe;
+    }
+
+    #duck-canvas {
+      display: block;
+      width: 100%;
+      max-width: 700px;
+      border: 2px solid #ddd6fe;
+      background: #f0fdf4;
+      box-shadow: 4px 4px 0 #e9d5ff;
+      cursor: pointer;
+      outline: none;
+    }
+    #duck-canvas:focus { border-color: #a855f7; box-shadow: 4px 4px 0 #c4b5fd; }
+
     /* ── Mobile ────────────────────────────────── */
     @media (max-width: 600px) {
       .page { padding: 28px 14px 60px; }
@@ -532,6 +574,18 @@
   <div class="week-nav-arrows">
     <button class="nav-arrow" id="prev-btn" onclick="changeWeek(-1)">◀ PREV</button>
     <button class="nav-arrow" id="next-btn" onclick="changeWeek(1)">NEXT ▶</button>
+  </div>
+
+  <!-- Duck game -->
+  <div class="duck-section">
+    <div class="section-title" style="margin-top:48px">DUCK BREAK</div>
+    <div class="duck-hint">USE ARROW KEYS TO MOVE · COLLECT THE BREADCRUMBS</div>
+    <div class="duck-score-row">
+      <span class="duck-score-label">SCORE</span>
+      <span class="duck-score" id="duck-score">0</span>
+    </div>
+    <canvas id="duck-canvas" tabindex="0"></canvas>
+    <div class="duck-hint" style="margin-top:10px;color:#c4b5fd">CLICK THE GAME FIRST TO FOCUS IT</div>
   </div>
 
 </div>
@@ -831,6 +885,196 @@ function updateProgress() {
 buildWeekNav();
 buildWeekDetail();
 updateProgress();
+
+// ── Duck game ───────────────────────────────────────────────────────────────
+(function() {
+  const canvas = document.getElementById('duck-canvas');
+  const ctx = canvas.getContext('2d');
+  const S = 4; // pixel scale
+
+  // Canvas logical size
+  const W = 160, H = 80;
+  canvas.width = W * S;
+  canvas.height = H * S;
+
+  // Duck pixel art — 12×10, facing right or left
+  // Colors: Y=yellow, O=orange, E=eye, W=white, ' '=transparent
+  const DUCK_R = [
+    '    YYYY    ',
+    '   YYYYYY  O',
+    '  YYEYYYYY OO',
+    ' YYYYYYYYYYO ',
+    ' YYYYYYYYYYY ',
+    ' YYYYYYYYYYY ',
+    '  YYYYYYYY  ',
+    '  WWWWWWW   ',
+    '  YYYYYYYY  ',
+    '   OO  OO   ',
+  ];
+
+  const DUCK_L = [
+    '    YYYY    ',
+    'O  YYYYYY   ',
+    'OO YYYYYEYYY ',
+    ' OYYYYYYYYYY ',
+    ' YYYYYYYYYYY ',
+    ' YYYYYYYYYYY ',
+    '  YYYYYYYY  ',
+    '   WWWWWWW  ',
+    '  YYYYYYYY  ',
+    '   OO  OO   ',
+  ];
+
+  const COL = { Y:'#fbbf24', O:'#f97316', E:'#1e1040', W:'#fff8e7', ' ':null };
+
+  function drawSprite(sprite, ox, oy) {
+    sprite.forEach((row, r) => {
+      [...row].forEach((c, col) => {
+        const color = COL[c];
+        if (!color) return;
+        ctx.fillStyle = color;
+        ctx.fillRect((ox + col) * S, (oy + r) * S, S, S);
+      });
+    });
+  }
+
+  // Breadcrumb pixel (3×3 brown dot)
+  function drawCrumb(x, y) {
+    ctx.fillStyle = '#92400e';
+    ctx.fillRect(x * S, y * S, S * 3, S * 2);
+    ctx.fillStyle = '#d97706';
+    ctx.fillRect(x * S, y * S, S, S);
+  }
+
+  // Duck state
+  let duck = { x: W / 2 - 6, y: H / 2 - 5, vx: 0, vy: 0, facing: 1, step: 0, frameTimer: 0 };
+  const SPEED = 1.2;
+  const keys = {};
+
+  // Breadcrumbs
+  const CRUMB_COUNT = 8;
+  let crumbs = [];
+  let score = 0;
+
+  function spawnCrumb() {
+    return { x: 4 + Math.random() * (W - 12), y: 4 + Math.random() * (H - 14) };
+  }
+
+  function resetCrumbs() {
+    crumbs = Array.from({ length: CRUMB_COUNT }, spawnCrumb);
+  }
+  resetCrumbs();
+
+  // Grass tufts (static decoration)
+  const tufts = Array.from({ length: 18 }, () => ({
+    x: Math.random() * (W - 4) | 0,
+    y: (H * 0.6 + Math.random() * (H * 0.35)) | 0
+  }));
+
+  function drawBg() {
+    // Sky
+    ctx.fillStyle = '#e0f2fe';
+    ctx.fillRect(0, 0, W * S, H * S * 0.55);
+    // Grass
+    ctx.fillStyle = '#bbf7d0';
+    ctx.fillRect(0, H * S * 0.55, W * S, H * S * 0.45);
+    // Ground line
+    ctx.fillStyle = '#86efac';
+    ctx.fillRect(0, H * S * 0.55, W * S, S);
+    // Tufts
+    ctx.fillStyle = '#4ade80';
+    tufts.forEach(t => {
+      ctx.fillRect(t.x * S, t.y * S, S, S * 2);
+      ctx.fillRect((t.x + 1) * S, (t.y - 1) * S, S, S * 2);
+    });
+    // Small cloud
+    ctx.fillStyle = '#fff';
+    [[20,8],[22,7],[24,7],[26,8],[28,8]].forEach(([cx,cy]) =>
+      ctx.fillRect(cx * S, cy * S, S * 3, S * 2)
+    );
+    [[80,12],[82,11],[84,11],[86,12],[88,12]].forEach(([cx,cy]) =>
+      ctx.fillRect(cx * S, cy * S, S * 3, S * 2)
+    );
+  }
+
+  function update() {
+    duck.vx = 0; duck.vy = 0;
+    if (keys['ArrowLeft']  || keys['a']) { duck.vx = -SPEED; duck.facing = -1; }
+    if (keys['ArrowRight'] || keys['d']) { duck.vx =  SPEED; duck.facing =  1; }
+    if (keys['ArrowUp']    || keys['w']) duck.vy = -SPEED;
+    if (keys['ArrowDown']  || keys['s']) duck.vy =  SPEED;
+
+    // Diagonal normalise
+    if (duck.vx && duck.vy) { duck.vx *= 0.707; duck.vy *= 0.707; }
+
+    if (duck.vx || duck.vy) {
+      duck.frameTimer++;
+      if (duck.frameTimer > 8) { duck.step ^= 1; duck.frameTimer = 0; }
+    }
+
+    duck.x = Math.max(0, Math.min(W - 12, duck.x + duck.vx));
+    duck.y = Math.max(0, Math.min(H - 12, duck.y + duck.vy));
+
+    // Collect crumbs
+    crumbs = crumbs.filter(c => {
+      const dx = (duck.x + 5) - (c.x + 1);
+      const dy = (duck.y + 5) - (c.y + 1);
+      if (Math.abs(dx) < 7 && Math.abs(dy) < 7) {
+        score++;
+        document.getElementById('duck-score').textContent = score;
+        return false;
+      }
+      return true;
+    });
+    if (crumbs.length < 3) crumbs.push(spawnCrumb());
+  }
+
+  function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    drawBg();
+    crumbs.forEach(c => drawCrumb(c.x | 0, c.y | 0));
+    // Bob when walking
+    const bob = (duck.vx || duck.vy) ? (duck.step ? -1 : 0) : 0;
+    const sprite = duck.facing === 1 ? DUCK_R : DUCK_L;
+    drawSprite(sprite, duck.x | 0, (duck.y + bob) | 0);
+  }
+
+  function loop() {
+    update();
+    draw();
+    requestAnimationFrame(loop);
+  }
+
+  canvas.addEventListener('keydown', e => {
+    keys[e.key] = true;
+    if (['ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.key)) e.preventDefault();
+  });
+  canvas.addEventListener('keyup', e => { keys[e.key] = false; });
+  canvas.addEventListener('click', () => canvas.focus());
+
+  // Mobile touch support
+  let touchStart = null;
+  canvas.addEventListener('touchstart', e => {
+    touchStart = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+    e.preventDefault();
+  }, { passive: false });
+  canvas.addEventListener('touchmove', e => {
+    if (!touchStart) return;
+    const dx = e.touches[0].clientX - touchStart.x;
+    const dy = e.touches[0].clientY - touchStart.y;
+    keys['ArrowLeft']  = dx < -10;
+    keys['ArrowRight'] = dx >  10;
+    keys['ArrowUp']    = dy < -10;
+    keys['ArrowDown']  = dy >  10;
+    e.preventDefault();
+  }, { passive: false });
+  canvas.addEventListener('touchend', () => {
+    keys['ArrowLeft'] = keys['ArrowRight'] = keys['ArrowUp'] = keys['ArrowDown'] = false;
+    touchStart = null;
+  });
+
+  loop();
+})();
 </script>
 </body>
 </html>
