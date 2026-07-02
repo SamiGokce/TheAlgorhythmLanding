@@ -540,9 +540,6 @@
 
 <!-- Full-page duck overlay -->
 <canvas id="duck-canvas" style="position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:999;image-rendering:pixelated"></canvas>
-<div id="duck-hud" style="position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:1000;font-family:'Press Start 2P',monospace;font-size:8px;color:#7c3aed;background:#fff;border:2px solid #ddd6fe;padding:8px 16px;box-shadow:3px 3px 0 #e9d5ff;pointer-events:none;white-space:nowrap">
-  ARROW KEYS TO MOVE THE DUCK &nbsp;|&nbsp; CRUMBS: <span id="duck-score">0</span>
-</div>
 
 <script>
 const weeks = [
@@ -840,13 +837,12 @@ buildWeekNav();
 buildWeekDetail();
 updateProgress();
 
-// ── Duck game (full-page overlay) ───────────────────────────────────────────
+// ── Duck (full-page overlay) ─────────────────────────────────────────────────
 (function() {
   const canvas = document.getElementById('duck-canvas');
   const ctx = canvas.getContext('2d');
-  const S = 4; // px per game pixel
+  const S = 5; // px per game pixel — bigger and cuter
 
-  // Resize canvas to match viewport
   function resize() {
     canvas.width  = window.innerWidth;
     canvas.height = window.innerHeight;
@@ -854,78 +850,75 @@ updateProgress();
   resize();
   window.addEventListener('resize', resize);
 
+  // ── Pixel art duck, 12 wide × 11 tall ──────────────────────────────────────
+  // Y=body yellow  G=golden head  O=orange beak/feet  E=eye  W=white wing  .=empty
+  //
+  // Facing RIGHT — head leads right, beak pokes out right
   const DUCK_R = [
-    '    YYYY    ',
-    '   YYYYYY  O',
-    '  YYEYYYYY OO',
-    ' YYYYYYYYYYO ',
-    ' YYYYYYYYYYY ',
-    ' YYYYYYYYYYY ',
-    '  YYYYYYYY  ',
-    '  WWWWWWW   ',
-    '  YYYYYYYY  ',
-    '   OO  OO   ',
+    '....GGGG....',  // head dome
+    '...GGGGGG...',  // head sides
+    '..GGEGGGGOO.',  // eye + beak (two orange pixels right)
+    '.YYYYGGGGO..',  // body starts, beak tip
+    'YYYYYYYYYYYY',  // widest body
+    'YYYYYYYYYYYY',  // body
+    '.YWWYYYYYYYY',  // white wing highlight
+    '..YYYYYYYYYY',  // lower body
+    '...YYYYYYYY.',  // taper
+    '....YYYY....',  // tail
+    '....OOOO....',  // feet (two pairs)
   ];
+
+  // Facing LEFT — mirror: head leads left, beak pokes out left
   const DUCK_L = [
-    '    YYYY    ',
-    'O  YYYYYY   ',
-    'OO YYYYYEYYY ',
-    ' OYYYYYYYYYY ',
-    ' YYYYYYYYYYY ',
-    ' YYYYYYYYYYY ',
-    '  YYYYYYYY  ',
-    '   WWWWWWW  ',
-    '  YYYYYYYY  ',
-    '   OO  OO   ',
+    '....GGGG....',
+    '...GGGGGG...',
+    '.OOGGGGEGG..',
+    '..OGGGGYYYYY',
+    'YYYYYYYYYYYY',
+    'YYYYYYYYYYYY',
+    'YYYYYYYYYWWY',
+    'YYYYYYYYYY..',
+    '.YYYYYYYY...',
+    '....YYYY....',
+    '....OOOO....',
   ];
 
-  const COL = { Y:'#fbbf24', O:'#f97316', E:'#1e1040', W:'#fff8e7', ' ':null };
-  const DW = 13 * S, DH = 10 * S; // duck pixel dimensions
+  const COL = {
+    'Y': '#fbbf24',  // warm yellow body
+    'G': '#f59e0b',  // deeper gold head
+    'O': '#ea580c',  // orange beak + feet
+    'E': '#1e1040',  // dark eye
+    'W': '#fef3c7',  // pale wing highlight
+    '.': null
+  };
 
-  function drawSprite(sprite, ox, oy) {
+  const COLS = 12, ROWS = 11;
+  const DW = COLS * S, DH = ROWS * S;
+
+  function drawDuck(sprite, ox, oy) {
+    // Soft drop shadow under duck
+    ctx.fillStyle = 'rgba(0,0,0,0.08)';
+    ctx.beginPath();
+    ctx.ellipse(ox + DW/2, oy + DH + S, DW/2 - S, S, 0, 0, Math.PI * 2);
+    ctx.fill();
+
     sprite.forEach((row, r) => {
-      [...row].forEach((c, col) => {
-        const color = COL[c];
+      [...row].forEach((ch, c) => {
+        const color = COL[ch];
         if (!color) return;
         ctx.fillStyle = color;
-        ctx.fillRect(ox + col * S, oy + r * S, S, S);
+        ctx.fillRect(ox + c * S, oy + r * S, S, S);
       });
     });
   }
 
-  function drawCrumb(x, y) {
-    ctx.fillStyle = '#92400e';
-    ctx.fillRect(x, y, S * 3, S * 2);
-    ctx.fillStyle = '#d97706';
-    ctx.fillRect(x, y, S, S);
-  }
-
-  // Duck starts center-screen
   let duck = {
     x: window.innerWidth  / 2 - DW / 2,
     y: window.innerHeight / 2 - DH / 2,
     vx: 0, vy: 0, facing: 1, step: 0, frameTimer: 0
   };
-  const SPEED = 2.5;
+  const SPEED = 2.8;
   const keys = {};
-  let score = 0;
-
-  // Breadcrumbs scattered across full viewport
-  const CRUMB_COUNT = 10;
-  let crumbs = [];
-
-  function spawnCrumb() {
-    return {
-      x: S * 4 + Math.random() * (window.innerWidth  - S * 8),
-      y: S * 4 + Math.random() * (window.innerHeight - S * 8)
-    };
-  }
-  crumbs = Array.from({ length: CRUMB_COUNT }, spawnCrumb);
-
-  // Respawn crumbs on resize
-  window.addEventListener('resize', () => {
-    crumbs = crumbs.map(() => spawnCrumb());
-  });
 
   function update() {
     duck.vx = 0; duck.vy = 0;
@@ -936,36 +929,28 @@ updateProgress();
 
     if (duck.vx && duck.vy) { duck.vx *= 0.707; duck.vy *= 0.707; }
 
-    if (duck.vx || duck.vy) {
+    const moving = duck.vx !== 0 || duck.vy !== 0;
+    if (moving) {
       duck.frameTimer++;
-      if (duck.frameTimer > 7) { duck.step ^= 1; duck.frameTimer = 0; }
+      if (duck.frameTimer > 9) { duck.step ^= 1; duck.frameTimer = 0; }
+    } else {
+      duck.step = 0;
+      duck.frameTimer = 0;
     }
 
     duck.x = Math.max(0, Math.min(window.innerWidth  - DW, duck.x + duck.vx));
     duck.y = Math.max(0, Math.min(window.innerHeight - DH, duck.y + duck.vy));
-
-    crumbs = crumbs.filter(c => {
-      if (Math.abs((duck.x + DW/2) - (c.x + S)) < DW/2 + S*2 &&
-          Math.abs((duck.y + DH/2) - (c.y + S)) < DH/2 + S*2) {
-        score++;
-        document.getElementById('duck-score').textContent = score;
-        return false;
-      }
-      return true;
-    });
-    while (crumbs.length < CRUMB_COUNT) crumbs.push(spawnCrumb());
   }
 
   function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    crumbs.forEach(c => drawCrumb(c.x | 0, c.y | 0));
-    const bob = (duck.vx || duck.vy) ? (duck.step ? -S : 0) : 0;
-    drawSprite(duck.facing === 1 ? DUCK_R : DUCK_L, duck.x | 0, (duck.y + bob) | 0);
+    const bob = duck.step ? -S : 0;
+    const sprite = duck.facing === 1 ? DUCK_R : DUCK_L;
+    drawDuck(sprite, duck.x | 0, (duck.y + bob) | 0);
   }
 
   function loop() { update(); draw(); requestAnimationFrame(loop); }
 
-  // Arrow keys on window so no click-to-focus needed
   window.addEventListener('keydown', e => {
     if (['ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.key)) {
       keys[e.key] = true;
