@@ -207,6 +207,22 @@
       100% { top: 115vh;  left: 5%;  opacity: 0.8; transform: rotate(20deg); }
     }
 
+    .curriculum-link {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 8px;
+      color: rgba(255,255,255,0.5);
+      text-decoration: none;
+      letter-spacing: 0.1em;
+      padding: 6px 10px;
+      border: 1px solid rgba(255,255,255,0.2);
+      background: rgba(0,0,0,0.4);
+      transition: color 0.2s, border-color 0.2s;
+    }
+    .curriculum-link:hover {
+      color: #fff;
+      border-color: rgba(255,255,255,0.6);
+    }
+
     .mute-btn {
       position: fixed;
       top: 24px;
@@ -462,6 +478,7 @@
     <input class="waitlist-input" type="email" placeholder="your@email.com" id="waitlist-email">
     <button class="waitlist-btn" onclick="submitWaitlist()">SUBMIT</button>
     <span class="waitlist-success" id="waitlist-success">► YOU'RE ON THE LIST!</span>
+    <a href="curriculum.html" class="curriculum-link">VIEW CURRICULUM ▶</a>
   </div>
 
   <img class="nav-logo" src="logo.png" alt="Algorhythm">

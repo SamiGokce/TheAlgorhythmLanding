@@ -1,0 +1,806 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Algorhythm — Tier 1 Spark Curriculum</title>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    html, body {
+      width: 100%; height: 100%;
+      background: #050a12;
+      color: #fff;
+      font-family: 'Press Start 2P', monospace;
+      overflow-x: hidden;
+    }
+
+    /* ── Pixel grid background ─────────────────── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+      background-size: 32px 32px;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    /* ── Scanline overlay ──────────────────────── */
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 2px,
+        rgba(0,0,0,0.08) 2px,
+        rgba(0,0,0,0.08) 4px
+      );
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    /* ── Layout ────────────────────────────────── */
+    .page {
+      position: relative;
+      z-index: 1;
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 48px 24px 80px;
+    }
+
+    /* ── Back link ─────────────────────────────── */
+    .back {
+      display: inline-block;
+      font-size: 7px;
+      color: rgba(255,255,255,0.4);
+      text-decoration: none;
+      letter-spacing: 0.08em;
+      margin-bottom: 40px;
+      transition: color 0.2s;
+    }
+    .back:hover { color: #fff; }
+    .back::before { content: '◀ '; }
+
+    /* ── Header ────────────────────────────────── */
+    .header {
+      text-align: center;
+      margin-bottom: 48px;
+    }
+
+    .tier-badge {
+      display: inline-block;
+      font-size: 7px;
+      letter-spacing: 0.15em;
+      color: #0ff;
+      border: 2px solid #0ff;
+      padding: 6px 14px;
+      margin-bottom: 20px;
+      box-shadow: 3px 3px 0 #005555, inset 0 0 12px rgba(0,255,255,0.1);
+      image-rendering: pixelated;
+    }
+
+    .header h1 {
+      font-size: clamp(14px, 3vw, 22px);
+      letter-spacing: 0.04em;
+      line-height: 1.6;
+      text-shadow: 3px 3px 0 #000, 0 0 20px rgba(0,255,255,0.3);
+      margin-bottom: 16px;
+    }
+
+    .header .tagline {
+      font-size: 8px;
+      color: rgba(255,255,255,0.5);
+      letter-spacing: 0.1em;
+      line-height: 2;
+    }
+
+    /* ── Info strip ────────────────────────────── */
+    .info-strip {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      justify-content: center;
+      margin-bottom: 48px;
+    }
+
+    .info-chip {
+      font-size: 6px;
+      letter-spacing: 0.08em;
+      padding: 8px 12px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.15);
+      color: rgba(255,255,255,0.7);
+      white-space: nowrap;
+    }
+
+    .info-chip span { color: #fff; }
+
+    /* ── Outcomes ──────────────────────────────── */
+    .section-title {
+      font-size: 9px;
+      letter-spacing: 0.12em;
+      color: #0ff;
+      margin-bottom: 20px;
+      padding-bottom: 8px;
+      border-bottom: 2px solid rgba(0,255,255,0.3);
+    }
+
+    .outcomes {
+      margin-bottom: 48px;
+    }
+
+    .outcome-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      margin-bottom: 14px;
+      font-size: 7px;
+      line-height: 2;
+      color: rgba(255,255,255,0.8);
+      cursor: pointer;
+      padding: 10px 14px;
+      border: 1px solid rgba(255,255,255,0.08);
+      transition: background 0.15s, border-color 0.15s;
+    }
+
+    .outcome-item:hover { background: rgba(255,255,255,0.04); border-color: rgba(0,255,255,0.3); }
+
+    .outcome-item.checked { color: rgba(255,255,255,0.4); }
+    .outcome-item.checked .check-box { background: #0ff; color: #000; }
+
+    .check-box {
+      flex-shrink: 0;
+      width: 14px;
+      height: 14px;
+      border: 2px solid rgba(255,255,255,0.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 8px;
+      margin-top: 2px;
+      image-rendering: pixelated;
+      transition: background 0.1s;
+    }
+
+    /* ── Week navigator ────────────────────────── */
+    .week-nav {
+      margin-bottom: 32px;
+    }
+
+    .week-grid {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .week-btn {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 8px;
+      width: 52px;
+      height: 52px;
+      background: rgba(255,255,255,0.05);
+      border: 2px solid rgba(255,255,255,0.2);
+      color: rgba(255,255,255,0.6);
+      cursor: pointer;
+      image-rendering: pixelated;
+      transition: all 0.1s;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 2px;
+    }
+
+    .week-btn:hover {
+      border-color: #0ff;
+      color: #fff;
+      background: rgba(0,255,255,0.08);
+      box-shadow: 0 0 10px rgba(0,255,255,0.2);
+    }
+
+    .week-btn.active {
+      background: rgba(0,255,255,0.15);
+      border-color: #0ff;
+      color: #0ff;
+      box-shadow: 3px 3px 0 #005555, 0 0 16px rgba(0,255,255,0.3);
+    }
+
+    .week-btn.done { border-color: rgba(0,255,100,0.5); color: rgba(0,255,100,0.7); }
+    .week-btn.done::after {
+      content: '✓';
+      position: absolute;
+      top: 2px;
+      right: 4px;
+      font-size: 6px;
+      color: #0f6;
+    }
+
+    .week-num { font-size: 10px; }
+    .week-label { font-size: 5px; color: rgba(255,255,255,0.3); }
+    .week-btn.active .week-label { color: rgba(0,255,255,0.6); }
+
+    /* ── Week detail ───────────────────────────── */
+    .week-detail {
+      border: 2px solid rgba(0,255,255,0.25);
+      background: rgba(0,10,20,0.6);
+      backdrop-filter: blur(12px);
+      padding: 28px;
+      margin-bottom: 32px;
+    }
+
+    .week-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 28px;
+      flex-wrap: wrap;
+    }
+
+    .week-title {
+      font-size: clamp(9px, 2vw, 13px);
+      line-height: 1.8;
+      color: #0ff;
+      text-shadow: 2px 2px 0 #003333;
+    }
+
+    .week-subtitle {
+      font-size: 7px;
+      color: rgba(255,255,255,0.5);
+      margin-top: 8px;
+      line-height: 2;
+    }
+
+    .mark-done-btn {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 6px;
+      padding: 8px 12px;
+      background: transparent;
+      border: 2px solid rgba(0,255,100,0.4);
+      color: rgba(0,255,100,0.6);
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.1s;
+      flex-shrink: 0;
+    }
+    .mark-done-btn:hover { background: rgba(0,255,100,0.1); border-color: #0f6; color: #0f6; }
+    .mark-done-btn.done { background: rgba(0,255,100,0.15); border-color: #0f6; color: #0f6; }
+
+    /* ── Timeline ──────────────────────────────── */
+    .timeline { display: flex; flex-direction: column; gap: 4px; }
+
+    .timeline-block {
+      display: flex;
+      gap: 16px;
+      align-items: stretch;
+    }
+
+    .time-label {
+      font-size: 6px;
+      color: rgba(255,255,255,0.35);
+      width: 56px;
+      flex-shrink: 0;
+      padding-top: 14px;
+      text-align: right;
+      letter-spacing: 0.05em;
+    }
+
+    .timeline-bar {
+      width: 3px;
+      flex-shrink: 0;
+      background: rgba(0,255,255,0.2);
+      position: relative;
+    }
+    .timeline-bar::before {
+      content: '';
+      position: absolute;
+      top: 12px;
+      left: -3px;
+      width: 9px;
+      height: 9px;
+      background: #0ff;
+      image-rendering: pixelated;
+    }
+
+    .lesson-card {
+      flex: 1;
+      padding: 14px 16px;
+      border: 1px solid rgba(255,255,255,0.1);
+      background: rgba(255,255,255,0.03);
+      margin-bottom: 4px;
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .lesson-card:hover { background: rgba(255,255,255,0.06); border-color: rgba(0,255,255,0.3); }
+
+    .lesson-name {
+      font-size: 7px;
+      color: #fff;
+      margin-bottom: 8px;
+      line-height: 1.8;
+    }
+
+    .lesson-body {
+      font-size: 6px;
+      color: rgba(255,255,255,0.55);
+      line-height: 2.2;
+      display: none;
+      margin-top: 10px;
+      border-top: 1px solid rgba(255,255,255,0.08);
+      padding-top: 10px;
+    }
+
+    .lesson-card.open .lesson-body { display: block; }
+    .lesson-card.open { border-color: rgba(0,255,255,0.4); background: rgba(0,255,255,0.04); }
+
+    .lesson-toggle {
+      font-size: 6px;
+      color: rgba(0,255,255,0.5);
+      margin-top: 4px;
+    }
+    .lesson-card.open .lesson-toggle { color: rgba(0,255,255,0.8); }
+
+    .break-block {
+      display: flex;
+      gap: 16px;
+      align-items: center;
+    }
+
+    .break-label {
+      flex: 1;
+      font-size: 6px;
+      color: rgba(255,255,255,0.25);
+      padding: 8px 16px;
+      border: 1px dashed rgba(255,255,255,0.1);
+      letter-spacing: 0.1em;
+      text-align: center;
+    }
+
+    .wrap-block {
+      margin-top: 4px;
+      padding: 10px 16px;
+      border: 1px solid rgba(255,255,255,0.08);
+      border-left: 3px solid rgba(0,255,255,0.4);
+      font-size: 6px;
+      color: rgba(255,255,255,0.45);
+      line-height: 2;
+    }
+
+    .wrap-title { color: rgba(0,255,255,0.6); margin-bottom: 4px; font-size: 6px; }
+
+    /* ── Nav arrows ────────────────────────────── */
+    .week-nav-arrows {
+      display: flex;
+      gap: 12px;
+      justify-content: space-between;
+      margin-top: 20px;
+    }
+
+    .nav-arrow {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 7px;
+      padding: 10px 20px;
+      background: rgba(255,255,255,0.05);
+      border: 2px solid rgba(255,255,255,0.2);
+      color: rgba(255,255,255,0.6);
+      cursor: pointer;
+      transition: all 0.1s;
+    }
+    .nav-arrow:hover { border-color: #0ff; color: #fff; }
+    .nav-arrow:disabled { opacity: 0.2; cursor: not-allowed; }
+
+    /* ── Progress bar ──────────────────────────── */
+    .progress-wrap {
+      margin-bottom: 32px;
+    }
+    .progress-label {
+      font-size: 6px;
+      color: rgba(255,255,255,0.4);
+      margin-bottom: 8px;
+      letter-spacing: 0.08em;
+    }
+    .progress-track {
+      height: 8px;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.12);
+      image-rendering: pixelated;
+    }
+    .progress-fill {
+      height: 100%;
+      background: #0ff;
+      box-shadow: 0 0 8px rgba(0,255,255,0.5);
+      transition: width 0.3s;
+      image-rendering: pixelated;
+    }
+
+    /* ── Mobile ────────────────────────────────── */
+    @media (max-width: 600px) {
+      .page { padding: 28px 14px 60px; }
+      .week-btn { width: 42px; height: 42px; font-size: 7px; }
+      .week-num { font-size: 9px; }
+      .week-detail { padding: 16px; }
+      .time-label { display: none; }
+      .timeline-bar { display: none; }
+    }
+  </style>
+</head>
+<body>
+<div class="page">
+
+  <a href="index.html" class="back">BACK TO HOME</a>
+
+  <!-- Header -->
+  <div class="header">
+    <div class="tier-badge">TIER 1 — SPARK</div>
+    <h1>AI EXPLORERS+</h1>
+    <div class="tagline">
+      "WHAT IS A SMART MACHINE, AND HOW DOES IT LEARN?"
+    </div>
+  </div>
+
+  <!-- Info strip -->
+  <div class="info-strip">
+    <div class="info-chip">ORG <span>GRAND RIVER FRIENDSHIP SOCIETY</span></div>
+    <div class="info-chip">AGES <span>7–9 / GRADES 2–4</span></div>
+    <div class="info-chip">FORMAT <span>10 WEEKS · 75 MIN/SESSION</span></div>
+    <div class="info-chip">VENUE <span>UNIVERSITY OF WATERLOO</span></div>
+    <div class="info-chip">REACH <span>KITCHENER · WATERLOO · CAMBRIDGE · GUELPH</span></div>
+  </div>
+
+  <!-- Progress -->
+  <div class="progress-wrap">
+    <div class="progress-label">PROGRESS — <span id="progress-text">0 / 10 WEEKS COMPLETED</span></div>
+    <div class="progress-track">
+      <div class="progress-fill" id="progress-fill" style="width:0%"></div>
+    </div>
+  </div>
+
+  <!-- Learning Outcomes -->
+  <div class="outcomes">
+    <div class="section-title">LEARNING OUTCOMES</div>
+    <div id="outcomes-list">
+      <div class="outcome-item" onclick="toggleOutcome(this)">
+        <div class="check-box"></div>
+        <span>Recognize examples of AI in everyday life and explain that machines learn from examples.</span>
+      </div>
+      <div class="outcome-item" onclick="toggleOutcome(this)">
+        <div class="check-box"></div>
+        <span>Sort objects into categories and articulate the rule used — the foundational skill behind classification.</span>
+      </div>
+      <div class="outcome-item" onclick="toggleOutcome(this)">
+        <div class="check-box"></div>
+        <span>Understand why more good examples make an AI smarter.</span>
+      </div>
+      <div class="outcome-item" onclick="toggleOutcome(this)">
+        <div class="check-box"></div>
+        <span>Identify when a machine got something wrong and propose at least one reason why.</span>
+      </div>
+      <div class="outcome-item" onclick="toggleOutcome(this)">
+        <div class="check-box"></div>
+        <span>Build and present a paper-based Smart Sorter project at the final showcase.</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Week Navigator -->
+  <div class="week-nav">
+    <div class="section-title">10-WEEK SCHEDULE</div>
+    <div class="week-grid" id="week-grid"></div>
+  </div>
+
+  <!-- Week Detail -->
+  <div class="week-detail" id="week-detail"></div>
+
+  <!-- Nav arrows -->
+  <div class="week-nav-arrows">
+    <button class="nav-arrow" id="prev-btn" onclick="changeWeek(-1)">◀ PREV</button>
+    <button class="nav-arrow" id="next-btn" onclick="changeWeek(1)">NEXT ▶</button>
+  </div>
+
+</div>
+
+<script>
+const weeks = [
+  {
+    num: 1,
+    title: "MODULE 1 — INTRODUCTION TO AI",
+    subtitle: "What Is AI? Sorting & Sensing · Lessons 1.1 + 1.2",
+    lessons: [
+      {
+        time: "0–30 MIN",
+        name: "LESSON 1.1 — AI HUNT",
+        body: "Facilitator describes four scenarios (self-driving car, face unlock, YouTube recommendation, robot vacuum). Students vote 'smart machine or not?' after each one. Pairs sort 16 picture cards into two string circles: 'learns from examples' vs 'follows the same steps every time.' The facilitator circulates and asks: How do you know? What makes this one different? Class poster 'AI in Our Lives' starts today and grows each week."
+      },
+      {
+        time: "35–70 MIN",
+        name: "LESSON 1.2 — PIXEL DETECTIVES",
+        body: "Pairs decode a 6x6 grid shape by hearing one row read aloud at a time, simulating how a computer scans an image. Introduces the idea that machines see images as grids of dots, not as whole pictures. Variation: introduce a noisy grid where some squares are randomly wrong. Bonus: rotating groups use Google Quick Draw on one shared computer and discuss when the AI guessed fast vs. got confused and why."
+      }
+    ],
+    wrap: "Each student names one AI thing they noticed this week. Facilitator adds it to the class poster."
+  },
+  {
+    num: 2,
+    title: "MODULE 1 (CONT.) + MODULE 2 BEGINS",
+    subtitle: "Smart Helpers & Learning From Examples · Lessons 1.3 + 2.1",
+    lessons: [
+      {
+        time: "0–30 MIN",
+        name: "LESSON 1.3 — MEET YOUR FIRST SMART HELPER",
+        body: "Facilitator role-plays an AI assistant using a 10-rule card rulebook. A volunteer asks three questions: one easy (What's the weather?), one harder (Tell me a story about a dragon), one impossible (What did I dream last night?). Students then pair up and take turns as human and assistant. The assistant can only answer what is on their rule cards — anything else gets 'I don't know how to do that yet.' Reveals that AI knows only what people taught it."
+      },
+      {
+        time: "35–70 MIN",
+        name: "LESSON 2.1 — HOW DO WE LEARN WHAT A CAT IS?",
+        body: "Facilitator holds up 6 printed cat pictures (fat, skinny, fluffy, black, tabby, kitten), then a cartoon cat, then a dog that looks a bit like a cat. After each, students yell CAT or NOT CAT. Discuss: how did you know? What features did you look for? Class then builds a 'sticky note brain' placing YES and NO examples on the wall. A tricky item is held up and the class votes. More examples = smarter brain. Introduces the concept of training data."
+      }
+    ],
+    wrap: "What would happen if we only had 3 examples? What if they were all the same kind? Plant the seed for the ethics module."
+  },
+  {
+    num: 3,
+    title: "MODULE 2 — MACHINE LEARNING FOUNDATIONS",
+    subtitle: "Training Your Partner Robot · Lessons 2.2 + 2.3",
+    lessons: [
+      {
+        time: "0–30 MIN",
+        name: "LESSON 2.2 — STICKER SORT ROBOT",
+        body: "One student is the 'robot,' one is the 'trainer.' Trainer shows 20 labelled picture cards one at a time, saying the label aloud; robot memorizes the pattern. Robot then classifies 10 new unlabelled cards. Tally the score. Add 10 more training examples — score usually improves. Switch roles with a new category. Bonus: if time allows, one group at a time watches the facilitator train a quick 2-class model on Teachable Machine on the shared screen and compare it to what they just did by hand."
+      },
+      {
+        time: "35–70 MIN",
+        name: "LESSON 2.3 — WHEN AI GETS IT WRONG",
+        body: "Funny AI-mistake images shown (dog labelled as muffin, banana identified as phone). Big laughs, then: why did this happen? Pairs try to 'trick the robot' with edge cases using the Sticker Sort Robot setup: Is a tomato a fruit? Is a crayon drawing of fruit still fruit? Is a plastic apple a fruit? Tally hits, misses, and 'could be fixed.' Retrain with better examples and retest. Bridge to Module 4: AI makes mistakes because of the examples it was given — not because it is mean or broken."
+      }
+    ],
+    wrap: "AI is not magic. What is one way we could make our robot smarter next time?"
+  },
+  {
+    num: 4,
+    title: "MODULE 3 — DATA VISUALIZATION BASICS",
+    subtitle: "We Are the Data · Lessons 3.1 + 3.2",
+    lessons: [
+      {
+        time: "0–30 MIN",
+        name: "LESSON 3.1 — LIVING BAR CHARTS",
+        body: "'Today, we are the data.' Masking tape grid on the floor. Students physically stand in the column matching their answer to 4-5 questions (favourite season, number of siblings, how they got here today). Facilitator sketches each living chart on poster paper. Students then draw the chart they just stood in at their seats. Introduces the word 'dataset' — a collection of facts organized so we can see patterns."
+      },
+      {
+        time: "35–70 MIN",
+        name: "LESSON 3.2 — PATTERN HUNTERS",
+        body: "Pairs receive a pre-made data card with 12-15 entries. They count, sort, and draw the simplest possible chart on poster paper. They circle the biggest group, smallest group, and most surprising thing. Each pair presents their 30-second data story to the class. Posters go up on the wall to build a data display."
+      }
+    ],
+    wrap: "What story does your chart tell? What question does it NOT answer?"
+  },
+  {
+    num: 5,
+    title: "MODULE 4 — AI ETHICS AND EQUITY",
+    subtitle: "Fair Training & Who Decides · Lessons 4.1 + 4.2",
+    lessons: [
+      {
+        time: "0–30 MIN",
+        name: "LESSON 4.1 — FAIR TRAINER / UNFAIR TRAINER",
+        body: "Story: a computer was only shown golden retrievers, then failed when it saw a poodle, a chihuahua, and a Great Dane. Act it out with picture cards. Pairs get two training card stacks: Stack A is varied dog breeds, Stack B is one breed only. Using the Sticker Sort Robot method, they train and test with each stack on the same test cards. The biased AI fails more — and it is the training data's fault, not the AI's. Good AI builders make sure to include everyone in the training."
+      },
+      {
+        time: "35–70 MIN",
+        name: "LESSON 4.2 — SHOULD THE ROBOT DECIDE?",
+        body: "Three scenarios read aloud: a robot picks the music for the class party, picks who gets the last cookie, picks who is line leader today. Quick thumbs vote after each, then open discussion. Students sort 12 decision cards into three columns: ROBOT DECIDES / HUMAN DECIDES / ROBOT HELPS A HUMAN DECIDE. Disagreements are actively encouraged — the point is to think, not to reach consensus."
+      }
+    ],
+    wrap: "Even if AI is smart, some choices need someone who cares about the outcome. What is one decision you would never let a robot make?"
+  },
+  {
+    num: 6,
+    title: "MODULE 5 — CAREER EXPLORATION",
+    subtitle: "Real People, Future Jobs · Lessons 5.1 + 5.2",
+    lessons: [
+      {
+        time: "0–30 MIN",
+        name: "LESSON 5.1 — MEET A REAL AI HELPER",
+        body: "20-minute in-person visit or video call from a University of Waterloo or Laurier mentor, or a GRFS tech volunteer. Guest brief sent in advance: bring one show-and-tell item, tell us what you wanted to be at age 8, keep language simple. Each student writes one question on a sticky note beforehand; facilitator picks and sequences the best ones. Post-visit: students draw a day in the life of an AI helper at 9am, noon, and 3pm. Drawings go on the wall."
+      },
+      {
+        time: "35–70 MIN",
+        name: "LESSON 5.2 — JOBS THAT DON'T EXIST YET",
+        body: "When your parents were 8, the job 'YouTuber' did not exist. When you are grown up, lots of jobs that do not exist yet will exist. Brainstorm wild future AI jobs together as a class. Each student designs a future AI-related job on paper: name, tools they use, problem they solve, and a self-portrait as future me. Encourage creative ideas: Robot Pet Trainer, Mars Weather Forecaster, AI Snack Inventor. 30-second showcase — each student introduces their future self."
+      }
+    ],
+    wrap: "Future job posters go on the wall and feed into the final showcase display."
+  },
+  {
+    num: 7,
+    title: "MODULE 6 — SHOWCASE PREP",
+    subtitle: "Build the Smart Sorter · Capstone Project Launch · Lesson 6.1",
+    lessons: [
+      {
+        time: "0–35 MIN",
+        name: "LESSON 6.1A — BUILD YOUR SMART SORTER",
+        body: "Each student or pair designs a paper-based Smart Sorter: a branching yes/no flowchart on poster paper. They choose a category (animals, snacks, sports, vehicles, emotions) and create a decision tree that identifies items through yes/no questions. Example: Does it have legs? Yes → Does it fly? Yes → It's a bird! Students build and sketch their full flowchart on poster paper using markers."
+      },
+      {
+        time: "40–70 MIN",
+        name: "LESSON 6.1B — TEST AND REFINE",
+        body: "Pairs exchange Smart Sorters and try to break each other's with tricky picture cards. Creators watch silently and note where the flowchart fails or gets confused. They then revise their decision trees based on what they observed. Optional: fast finishers try Teachable Machine on shared computer with facilitator help. All students practise their 60-second demo script: 'Hi, I'm [name] and this is my Smart Sorter...'"
+      }
+    ],
+    wrap: "What is one edge case your Smart Sorter could not handle? How could you fix it before showcase day?"
+  },
+  {
+    num: 8,
+    title: "REVIEW + DEEP DIVE",
+    subtitle: "Reinforce Every Module — No Student Left Behind",
+    lessons: [
+      {
+        time: "0–30 MIN",
+        name: "REVIEW ROUND 1 — AI CONCEPTS REVIEW GAME",
+        body: "Facilitator-led quiz game covering Modules 1 through 3. Teams earn points by sorting cards, answering questions, and acting out AI scenarios. Students who struggled with any concept get extra pair practice during this session. New examples added to the 'AI in Our Lives' class poster — it should be full by now."
+      },
+      {
+        time: "35–70 MIN",
+        name: "REVIEW ROUND 2 — ETHICS DEEP DIVE",
+        body: "Return to Module 4 scenarios with fresh examples drawn from students' own week. Small groups each take a new decision card and build a 'Who Decides?' case using what they have learned. Brief sharing circle. Students practise explaining fairness in their own words so they can speak about it confidently at the showcase."
+      }
+    ],
+    wrap: "Is there any module or concept you want to revisit before showcase day? Facilitator notes any gaps for next week."
+  },
+  {
+    num: 9,
+    title: "SHOWCASE REHEARSAL + POLISH",
+    subtitle: "Full Run-Through & Certificate Preview",
+    lessons: [
+      {
+        time: "0–35 MIN",
+        name: "REHEARSAL — 60-SECOND DEMOS",
+        body: "Each student or pair runs their full 60-second Smart Sorter demo for a peer audience. Feedback using sentence starters: 'One thing that was really clear was...' and 'One thing I'd like to understand better is...' Students revise their posters and flowcharts based on peer feedback. Repeat demos if time allows until every student feels confident with their script and their Sorter."
+      },
+      {
+        time: "40–70 MIN",
+        name: "POLISH & DISPLAY PREP",
+        body: "Students finalize their project titles, add their names to their posters, and decide how their Smart Sorter and future-job poster will be displayed on showcase day. Facilitator previews the AI Explorer — Tier 1 Spark certificate with each student's name and project title printed on it. Set-up walkthrough so showcase day runs without confusion — students know exactly where to stand and what to do."
+      }
+    ],
+    wrap: "You're ready. Here is what showcase day will look like — and who is coming to see your work."
+  },
+  {
+    num: 10,
+    title: "MODULE 6 — SHOWCASE DAY + GRADUATION",
+    subtitle: "Open House, Certificates & Closing Circle · Lesson 6.2",
+    lessons: [
+      {
+        time: "0–50 MIN",
+        name: "LESSON 6.2 — SHOWCASE",
+        body: "Open-house style. Students set up at stations with their Smart Sorters and future-job posters. Parents, GRFS volunteers, and community partners walk through. Each student gives their 60-second demo: 'Hi, I'm [name], and this is my Smart Sorter that figures out what animal you're thinking of. Try it!' Visitors interact with the Smart Sorter, ask questions, and leave a sticky-note compliment on the student's display."
+      },
+      {
+        time: "55–70 MIN",
+        name: "CERTIFICATE CEREMONY + CLOSING CIRCLE",
+        body: "Every student receives a printed AI Explorer — Tier 1 Spark certificate naming their project. Facilitator reads each student's name and project title aloud. Guests and families applaud for each student. Group photo. Each student then shares: one thing they learned, one thing that surprised them, and one thing they want to learn next. Final new examples added to the 'AI in Our Lives' poster — it stays on display at the GRFS community space after the program ends."
+      }
+    ],
+    wrap: "END OF TIER 1 — SPARK CURRICULUM. Congratulations to every explorer."
+  }
+];
+
+let currentWeek = 0;
+const doneWeeks = new Set(JSON.parse(localStorage.getItem('doneWeeks') || '[]'));
+
+function buildWeekNav() {
+  const grid = document.getElementById('week-grid');
+  grid.innerHTML = '';
+  weeks.forEach((w, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'week-btn' + (i === currentWeek ? ' active' : '') + (doneWeeks.has(i) ? ' done' : '');
+    btn.innerHTML = `<span class="week-num">${w.num}</span><span class="week-label">WK</span>`;
+    btn.onclick = () => selectWeek(i);
+    grid.appendChild(btn);
+  });
+}
+
+function buildWeekDetail() {
+  const w = weeks[currentWeek];
+  const detail = document.getElementById('week-detail');
+  const isDone = doneWeeks.has(currentWeek);
+
+  detail.innerHTML = `
+    <div class="week-header">
+      <div>
+        <div class="week-title">WEEK ${w.num} — ${w.title}</div>
+        <div class="week-subtitle">${w.subtitle}</div>
+      </div>
+      <button class="mark-done-btn ${isDone ? 'done' : ''}" onclick="toggleDone()" id="done-btn">
+        ${isDone ? 'COMPLETED' : 'MARK DONE'}
+      </button>
+    </div>
+
+    <div class="timeline">
+      ${w.lessons.map((l, i) => `
+        <div class="timeline-block">
+          <div class="time-label">${l.time}</div>
+          <div class="timeline-bar"></div>
+          <div class="lesson-card" onclick="toggleLesson(this)">
+            <div class="lesson-name">${l.name}</div>
+            <div class="lesson-toggle">▶ TAP TO EXPAND</div>
+            <div class="lesson-body">${l.body}</div>
+          </div>
+        </div>
+        ${i < w.lessons.length - 1 ? `
+        <div class="break-block">
+          <div class="time-label">5 MIN</div>
+          <div class="timeline-bar" style="background:transparent"></div>
+          <div class="break-label">— MOVEMENT BREAK —</div>
+        </div>` : ''}
+      `).join('')}
+
+      <div class="timeline-block">
+        <div class="time-label">70–75 MIN</div>
+        <div class="timeline-bar" style="background:rgba(0,255,255,0.1)"></div>
+        <div class="wrap-block">
+          <div class="wrap-title">WRAP</div>
+          ${w.wrap}
+        </div>
+      </div>
+    </div>
+  `;
+
+  document.getElementById('prev-btn').disabled = currentWeek === 0;
+  document.getElementById('next-btn').disabled = currentWeek === weeks.length - 1;
+}
+
+function selectWeek(i) {
+  currentWeek = i;
+  buildWeekNav();
+  buildWeekDetail();
+  document.getElementById('week-detail').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function changeWeek(dir) {
+  const next = currentWeek + dir;
+  if (next >= 0 && next < weeks.length) selectWeek(next);
+}
+
+function toggleLesson(card) {
+  card.classList.toggle('open');
+  const toggle = card.querySelector('.lesson-toggle');
+  toggle.textContent = card.classList.contains('open') ? '▼ COLLAPSE' : '▶ TAP TO EXPAND';
+}
+
+function toggleDone() {
+  if (doneWeeks.has(currentWeek)) {
+    doneWeeks.delete(currentWeek);
+  } else {
+    doneWeeks.add(currentWeek);
+  }
+  localStorage.setItem('doneWeeks', JSON.stringify([...doneWeeks]));
+  buildWeekNav();
+  buildWeekDetail();
+  updateProgress();
+}
+
+function toggleOutcome(el) {
+  el.classList.toggle('checked');
+  const box = el.querySelector('.check-box');
+  box.textContent = el.classList.contains('checked') ? '✓' : '';
+}
+
+function updateProgress() {
+  const pct = (doneWeeks.size / 10) * 100;
+  document.getElementById('progress-fill').style.width = pct + '%';
+  document.getElementById('progress-text').textContent = `${doneWeeks.size} / 10 WEEKS COMPLETED`;
+}
+
+// Init
+buildWeekNav();
+buildWeekDetail();
+updateProgress();
+</script>
+</body>
+</html>
