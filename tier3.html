@@ -590,6 +590,14 @@
       .week-dot-btn { font-size: 6px; height: 30px; }
       .modules-grid { grid-template-columns: 1fr 1fr; }
     }
+
+    /* ── Critter hover effect (owl flies over element) ── */
+    .critter-hover {
+      transform: translateY(-2px) !important;
+      border-color: var(--gold) !important;
+      box-shadow: 0 0 0 1px var(--gold), 0 0 14px rgba(255,199,44,0.25) !important;
+      transition: transform 0.08s, border-color 0.08s, box-shadow 0.08s !important;
+    }
   </style>
 </head>
 <body>
@@ -1206,442 +1214,198 @@ updateProgress();
 })();
 </script>
 
-<!-- ══ MINI GAME: GRADIENT DESCENT ══════════════════════ -->
-<button onclick="g3Open()" title="Play mini game" style="
-  position:fixed;bottom:24px;right:24px;z-index:888;
-  font-family:'Press Start 2P',monospace;font-size:7px;letter-spacing:0.08em;
-  padding:10px 14px;background:var(--bg);border:1px solid var(--gold);
-  color:var(--gold);cursor:pointer;
-  box-shadow:0 0 16px rgba(255,199,44,0.15);
-  transition:box-shadow 0.2s;
-" onmouseover="this.style.boxShadow='0 0 28px rgba(255,199,44,0.35)'"
-   onmouseout="this.style.boxShadow='0 0 16px rgba(255,199,44,0.15)'">&gt;&gt; MINI GAME</button>
-
-<div id="g3modal" style="display:none;position:fixed;inset:0;background:rgba(10,5,20,0.97);
-  z-index:9000;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:16px;">
-  <div style="width:100%;max-width:540px;display:flex;justify-content:space-between;align-items:center">
-    <span style="font-family:'Press Start 2P',monospace;font-size:8px;color:#ffc72c;letter-spacing:0.1em">GRADIENT DESCENT</span>
-    <button onclick="g3Close()" style="font-family:'Press Start 2P',monospace;font-size:6px;
-      padding:6px 12px;background:transparent;border:1px solid #4a2d7a;color:#9b7fc0;cursor:pointer">X CLOSE</button>
-  </div>
-  <canvas id="g3c" width="540" height="360" style="max-width:100%;border:1px solid #4a2d7a;display:block;"></canvas>
-  <div style="font-family:'Press Start 2P',monospace;font-size:7px;color:#9b7fc0;letter-spacing:0.08em;text-align:center">
-    A/D OR ARROW KEYS TO MOVE &nbsp;&nbsp; SPACE/W TO JUMP
-  </div>
-</div>
-
+<!-- ── Roaming pixel owl (full-page overlay, arrow keys) ── -->
+<canvas id="critter-canvas" style="position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:999;image-rendering:pixelated"></canvas>
 <script>
-(function(){
-  const W=540,H=360;
-  const C={
-    bg:'#0e0620',sur:'#1c1038',brd:'#4a2d7a',
-    purple:'#c084fc',violet:'#a855f7',gold:'#ffc72c',
-    dim:'#9b7fc0',txt:'#f0e8ff',grn:'#34d399',red:'#f87171',
-  };
+(function() {
+  const canvas = document.getElementById('critter-canvas');
+  const ctx = canvas.getContext('2d');
+  const S = 4; // px per game pixel
 
-  // Pixel sprites — no emoji in the canvas
-  const STAR=[
-    '....G....',
-    '....G....',
-    '...GGG...',
-    'GGGGGGGGG',
-    '.GGGGGGG.',
-    '..GGGGG..',
-    '..GG.GG..',
-    '.GG...GG.',
-    '.G.....G.',
+  function resize() {
+    canvas.width  = window.innerWidth;
+    canvas.height = window.innerHeight;
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  // ── Pixel owl 11×12 ────────────────────────────────────────────────────────
+  // O=gold body  F=white face disk  E=dark pupil  B=beak  D=purple wing  T=feet
+  // Symmetric body; facing shown by pupil offset (mirror flips it automatically)
+  // Frame A: feet apart
+  const OWL_R_A = [
+    '.O.......O.',  // ear tufts
+    '.OO.....OO.',
+    '.OOOOOOOOO.',  // head
+    'OOFFOOOFFOO',  // face disks
+    'OOFEOOOFEOO',  // pupils shifted right = facing right
+    'OOOOOBOOOOO',  // beak
+    'ODOOOOOOODO',  // wings begin
+    'ODDOOOOODDO',
+    '.DDOOOOODD.',
+    '..DOOOOOD..',
+    '..OOOOOOO..',
+    '...T...T...',  // feet apart
   ];
-  const WARN=[
-    '....Y....',
-    '...YYY...',
-    '...YBY...',
-    '..YYBYY..',
-    '..YYBYY..',
-    '.YYYYYYY.',
-    '.YYYBYYY.',
-    'YYYYYYYYY',
+  // Frame B: waddle (feet together)
+  const OWL_R_B = [
+    '.O.......O.',
+    '.OO.....OO.',
+    '.OOOOOOOOO.',
+    'OOFFOOOFFOO',
+    'OOFEOOOFEOO',
+    'OOOOOBOOOOO',
+    'ODOOOOOOODO',
+    'ODDOOOOODDO',
+    '.DDOOOOODD.',
+    '..DOOOOOD..',
+    '..OOOOOOO..',
+    '....T.T....',
   ];
-  function drawSprite(map,pal,x0,y0,s){
-    map.forEach((row,ry)=>{
-      [...row].forEach((ch,rx)=>{
-        if(ch==='.')return;
-        ctx.fillStyle=pal[ch];
-        ctx.fillRect(x0+rx*s,y0+ry*s,s,s);
+
+  const mir = rows => rows.map(r => [...r].reverse().join(''));
+  const OWL_L_A = mir(OWL_R_A);
+  const OWL_L_B = mir(OWL_R_B);
+
+  const COL = { O:'#ffc72c', F:'#f0e8ff', E:'#130926', B:'#f0883e', D:'#a855f7', T:'#f0883e', '.':null };
+  const CW = 11 * S, CH = 12 * S;
+
+  function drawCritter(sprite, ox, oy) {
+    ctx.fillStyle = 'rgba(0,0,0,0.3)';
+    ctx.beginPath();
+    ctx.ellipse(ox + CW/2, oy + CH + 2, CW/2 - 4, 3, 0, 0, Math.PI * 2);
+    ctx.fill();
+    sprite.forEach((row, r) => {
+      [...row].forEach((ch, c) => {
+        const col = COL[ch];
+        if (!col) return;
+        ctx.fillStyle = col;
+        ctx.fillRect(ox + c * S, oy + r * S, S, S);
       });
     });
   }
 
-  // Level terrain definitions — returns canvas-y of surface (higher y = lower on screen = lower loss)
-  function buildTerrain(lv){
-    const FLOOR=H-28, CEIL=72;
-    const pts=[];
-    for(let x=0;x<=W;x++){
-      const t=x/W;
-      let y;
-      if(lv===0){
-        // Convex bowl — one clear global minimum at ~65%
-        y=FLOOR-200*Math.pow(t-0.65,2)*2+20*Math.sin(t*Math.PI*0.8);
-      } else if(lv===1){
-        // Two valleys — shallow local min left, deep global min right
-        y=FLOOR
-          -160*Math.pow(t-0.72,2)*1.8
-          -70*Math.pow(t-0.22,2)*2.5
-          +55*Math.exp(-22*Math.pow(t-0.47,2));
-      } else {
-        // Rugged — many local minima, global min somewhere in right half
-        y=FLOOR*0.58
-          +85*Math.sin(t*Math.PI*3.2)
-          +55*Math.cos(t*Math.PI*6.8)
-          +28*Math.sin(t*Math.PI*11)
-          -18*Math.cos(t*Math.PI*1.5);
-      }
-      pts.push(Math.max(CEIL,Math.min(FLOOR,y)));
-    }
-    return pts;
-  }
-
-  // Find global minimum (max canvas-y = lowest physical point = lowest loss)
-  function findGlobalMin(terrain){
-    let gx=0;
-    terrain.forEach((y,x)=>{ if(y>terrain[gx]) gx=x; });
-    return gx;
-  }
-
-  // Find local minima (local peaks in canvas-y that aren't the global min)
-  function findLocalMinima(terrain,gx){
-    const lm=[];
-    for(let x=8;x<terrain.length-8;x++){
-      if(terrain[x]>terrain[x-4]&&terrain[x]>terrain[x+4]&&Math.abs(x-gx)>60){
-        // Check it's a meaningful local min (deep enough)
-        let leftHigher=false,rightHigher=false;
-        for(let d=1;d<50&&x-d>=0;d++) if(terrain[x-d]<terrain[x]-18){leftHigher=true;break;}
-        for(let d=1;d<50&&x+d<terrain.length;d++) if(terrain[x+d]<terrain[x]-18){rightHigher=true;break;}
-        if(leftHigher&&rightHigher) lm.push(x);
-      }
-    }
-    // Deduplicate (keep one per cluster)
-    const out=[];
-    lm.forEach(x=>{ if(!out.length||x-out[out.length-1]>60) out.push(x); });
-    return out;
-  }
-
-  const PW=14,PH=22;
-  const GRAVITY=0.45,JUMP_V=-10,MOVE_ACC=0.55,FRICTION=0.80,MAX_VX=3.2;
-
-  let cv,ctx,raf;
-  let state,level,terrain,goalX,localMinima;
-  let px,py,pvx,pvy,onGround;
-  let keys={};
-  let jumpPressed,elapsed,bestTimes,winTimer;
-  let walkFrame,walkTick;
-  let prevTs;
-
-  window.g3Open=function(){
-    document.getElementById('g3modal').style.display='flex';
-    cv=document.getElementById('g3c');
-    ctx=cv.getContext('2d');
-    window.addEventListener('keydown',onKey);
-    window.addEventListener('keyup',e=>{ keys[e.code]=false; });
-    bestTimes=[null,null,null];
-    startLevel(0);
+  let critter = {
+    x: window.innerWidth  * 0.68,
+    y: window.innerHeight * 0.55,
+    vx: 0, vy: 0, facing: 1, frame: 0, frameTimer: 0
   };
-  window.g3Close=function(){
-    document.getElementById('g3modal').style.display='none';
-    cancelAnimationFrame(raf);
-    window.removeEventListener('keydown',onKey);
-    window.removeEventListener('keyup',e=>{ keys[e.code]=false; });
-    keys={};
-  };
+  const SPEED = 2.8;
+  const keys = {};
 
-  function startLevel(lv){
-    level=lv;
-    terrain=buildTerrain(lv);
-    goalX=findGlobalMin(terrain);
-    localMinima=findLocalMinima(terrain,goalX);
-    // Spawn player at left side, on terrain
-    px=30; py=0; pvx=0; pvy=0; onGround=false;
-    py=terrain[px+PW/2]-PH-1;
-    elapsed=0; winTimer=0; walkFrame=0; walkTick=0;
-    jumpPressed=false; prevTs=null;
-    state='playing';
-    cancelAnimationFrame(raf);
-    raf=requestAnimationFrame(tick);
-  }
+  // ── Movement hint (fades once the user moves) ──────────────────────────────
+  const hint = { alpha: 1, fading: false };
+  const DPAD = [
+    '..XX..',
+    '..XX..',
+    'XXXXXX',
+    'XXXXXX',
+    '..XX..',
+    '..XX..',
+  ];
 
-  function tick(ts){
-    raf=requestAnimationFrame(tick);
-    const dt=prevTs?Math.min((ts-prevTs)/1000,0.05):0; prevTs=ts;
+  function drawHint(t) {
+    if (hint.alpha <= 0) return;
+    if (hint.fading) hint.alpha = Math.max(0, hint.alpha - 0.03);
 
-    ctx.fillStyle=C.bg; ctx.fillRect(0,0,W,H);
+    const label = 'ARROW KEYS TO MOVE';
+    ctx.font = '7px "Press Start 2P", monospace';
+    const tw = ctx.measureText(label).width;
+    const padX = 9, iconW = 12, gap = 7;
+    const bw = padX * 2 + iconW + gap + tw, bh = 26;
+    const bob = Math.sin(t * 0.004) * 3;
 
-    if(state==='playing'){
-      elapsed+=dt;
-      updatePlayer(dt);
-      // Win check
-      if(onGround&&Math.abs((px+PW/2)-goalX)<22){
-        if(bestTimes[level]===null||elapsed<bestTimes[level]) bestTimes[level]=elapsed;
-        state='win'; winTimer=0;
-      }
-      drawScene();
-      drawHUD();
-    } else if(state==='win'){
-      winTimer+=dt;
-      drawScene();
-      drawHUD();
-      drawWin();
-      if(winTimer>0.7&&(keys['Space']||keys['KeyW']||keys['ArrowUp']||keys['Enter'])){
-        if(level<2) startLevel(level+1);
-        else { state='complete'; }
-      }
-    } else if(state==='complete'){
-      drawComplete();
-    }
-  }
+    let bx = critter.x + CW / 2 - bw / 2;
+    bx = Math.max(8, Math.min(window.innerWidth - bw - 8, bx));
+    let by = critter.y - bh - 12 + bob;
+    if (by < 8) by = critter.y + CH + 12 + bob; // flip below when near top
 
-  function updatePlayer(dt){
-    // Horizontal
-    if(keys['KeyA']||keys['ArrowLeft'])  pvx-=MOVE_ACC;
-    else if(keys['KeyD']||keys['ArrowRight']) pvx+=MOVE_ACC;
-    else pvx*=FRICTION;
-    pvx=Math.max(-MAX_VX,Math.min(MAX_VX,pvx));
+    ctx.globalAlpha = hint.alpha;
+    ctx.fillStyle = 'rgba(19,9,38,0.92)';
+    ctx.fillRect(bx, by, bw, bh);
+    ctx.strokeStyle = '#ffc72c';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(bx + 0.5, by + 0.5, bw - 1, bh - 1);
 
-    // Jump
-    const wantJump=keys['Space']||keys['KeyW']||keys['ArrowUp'];
-    if(wantJump&&!jumpPressed&&onGround){ pvy=JUMP_V; onGround=false; }
-    jumpPressed=wantJump;
-
-    // Physics
-    pvy+=GRAVITY;
-    px+=pvx;
-    py+=pvy;
-
-    // Clamp horizontal
-    px=Math.max(0,Math.min(W-PW,px));
-
-    // Terrain collision
-    const footX=Math.round(Math.min(W-1,Math.max(0,px+PW/2)));
-    const ty=terrain[footX];
-    if(py+PH>=ty){
-      py=ty-PH;
-      pvy=Math.min(pvy*-0.05,0); // tiny bounce damp
-      onGround=true;
-    } else {
-      onGround=false;
-    }
-
-    // Walk animation
-    if(onGround&&Math.abs(pvx)>0.3){
-      walkTick++;
-      if(walkTick>6){ walkFrame=1-walkFrame; walkTick=0; }
-    } else { walkFrame=0; }
-  }
-
-  function drawScene(){
-    // Background grid lines (loss axis hints)
-    for(let y=H*0.25;y<H;y+=H*0.15){
-      ctx.strokeStyle='rgba(74,45,122,0.15)'; ctx.lineWidth=1;
-      ctx.setLineDash([3,6]);
-      ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(W,y); ctx.stroke();
-      ctx.setLineDash([]);
-    }
-
-    // Terrain fill (red-top → purple-mid → green-bottom gradient)
-    const grad=ctx.createLinearGradient(0,0,0,H);
-    grad.addColorStop(0,'rgba(248,113,113,0.55)');
-    grad.addColorStop(0.45,'rgba(168,85,247,0.4)');
-    grad.addColorStop(1,'rgba(52,211,153,0.5)');
-    ctx.fillStyle=grad;
-    ctx.beginPath();
-    ctx.moveTo(0,terrain[0]);
-    for(let x=1;x<=W;x++) ctx.lineTo(x,terrain[x]);
-    ctx.lineTo(W,H); ctx.lineTo(0,H); ctx.closePath();
-    ctx.fill();
-
-    // Terrain line
-    ctx.strokeStyle='rgba(192,132,252,0.7)'; ctx.lineWidth=2; ctx.setLineDash([]);
-    ctx.beginPath(); ctx.moveTo(0,terrain[0]);
-    for(let x=1;x<=W;x++) ctx.lineTo(x,terrain[x]);
-    ctx.stroke();
-
-    // Local minima warning signs (pixel triangle + !)
-    localMinima.forEach(lx=>{
-      const ly=terrain[lx];
-      drawSprite(WARN,{Y:C.red,B:C.bg},lx-9,ly-40,2);
-      ctx.font='bold 6px "Press Start 2P"'; ctx.fillStyle='rgba(248,113,113,0.8)';
-      ctx.textAlign='center';
-      ctx.fillText('LOCAL',lx,ly-10);
-      ctx.fillText('MIN',lx,ly-2);
+    DPAD.forEach((row, r) => {
+      [...row].forEach((ch, c) => {
+        if (ch !== 'X') return;
+        ctx.fillStyle = '#ffc72c';
+        ctx.fillRect(bx + padX + c * 2, by + 7 + r * 2, 2, 2);
+      });
     });
 
-    // Goal star (pixel, bobbing)
-    const gly=terrain[goalX];
-    const bob=Math.round(2*Math.sin(Date.now()*0.004));
-    drawSprite(STAR,{G:C.gold},goalX-9,gly-32+bob,2);
-    ctx.font='bold 6px "Press Start 2P"'; ctx.fillStyle=C.gold;
-    ctx.textAlign='center'; ctx.fillText('GLOBAL MIN',goalX,gly-2);
-
-    // Loss axis label (left side)
-    ctx.save();
-    ctx.translate(14,H/2); ctx.rotate(-Math.PI/2);
-    ctx.font='7px "Press Start 2P"'; ctx.fillStyle='rgba(155,127,192,0.5)';
-    ctx.textAlign='center'; ctx.fillText('LOSS',0,0);
-    ctx.restore();
-
-    // Player
-    drawPlayer();
+    ctx.fillStyle = '#f0e8ff';
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(label, bx + padX + iconW + gap, by + bh / 2 + 1);
+    ctx.globalAlpha = 1;
+    ctx.textBaseline = 'alphabetic';
   }
 
-  function drawPlayer(){
-    const x=Math.round(px), y=Math.round(py);
-    const facing=pvx<-0.2?-1:1; // -1=left, 1=right
+  // ── Interactive element hover detection ────────────────────────────────────
+  const SEL = '.module-card, .skill-tag, .week-dot-btn, .lesson-block, .done-btn, .nav-arrow, .tier-pill, .back, .info-chip, .uw-strip';
+  let els = [], active = new Set();
 
-    // Shadow
-    const fx=Math.round(Math.min(W-1,Math.max(0,px+PW/2)));
-    const ty=terrain[fx];
-    ctx.fillStyle='rgba(0,0,0,0.3)';
-    ctx.beginPath(); ctx.ellipse(x+PW/2,ty+2,8,3,0,0,Math.PI*2); ctx.fill();
+  function collectEls() { els = [...document.querySelectorAll(SEL)]; }
+  collectEls();
 
-    // Body
-    ctx.fillStyle='#7c3aed';
-    ctx.fillRect(x+1,y+10,PW-2,PH-10);
-    // Chest stripe
-    ctx.fillStyle='rgba(192,132,252,0.35)';
-    ctx.fillRect(x+3,y+13,PW-6,5);
+  const detail = document.getElementById('week-detail');
+  if (detail) new MutationObserver(collectEls).observe(detail, { childList: true, subtree: true });
 
-    // Legs (walk animation)
-    const legColor='#5b21b6';
-    if(walkFrame===0||!onGround){
-      ctx.fillStyle=legColor;
-      ctx.fillRect(x+2,y+PH,4,5); ctx.fillRect(x+PW-6,y+PH,4,5);
-    } else {
-      ctx.fillStyle=legColor;
-      ctx.fillRect(x+1,y+PH,4,6); ctx.fillRect(x+PW-5,y+PH,4,4);
-    }
-
-    // Head
-    ctx.fillStyle='#6d28d9';
-    ctx.fillRect(x+1,y,PW-2,12);
-    // Helmet visor
-    ctx.fillStyle='rgba(192,132,252,0.5)';
-    ctx.fillRect(x+2,y+2,PW-4,5);
-
-    // Eyes
-    const ex=facing>0?(x+8):(x+2);
-    ctx.fillStyle=C.gold;
-    ctx.fillRect(ex,y+3,3,3);
-
-    // Antenna
-    ctx.fillStyle='#c084fc';
-    ctx.fillRect(x+PW/2-1,y-5,2,5);
-    ctx.fillStyle=C.gold;
-    ctx.fillRect(x+PW/2-2,y-7,4,3);
-
-    // Arms
-    ctx.fillStyle='#7c3aed';
-    ctx.fillRect(x-3,y+11,3,7); ctx.fillRect(x+PW,y+11,3,7);
-  }
-
-  function drawHUD(){
-    // Loss value from player height
-    const lossRaw=1-((py+PH-72)/(H-28-72));
-    const loss=Math.max(0,Math.min(1,lossRaw));
-    const lossDisplay=(loss*9.99).toFixed(2);
-
-    // Loss bar (top right)
-    ctx.fillStyle='rgba(28,16,56,0.85)';
-    ctx.fillRect(W-130,10,120,36);
-    ctx.strokeStyle=C.brd; ctx.lineWidth=1;
-    ctx.strokeRect(W-130,10,120,36);
-    ctx.font='6px "Press Start 2P"'; ctx.textAlign='left'; ctx.fillStyle=C.dim;
-    ctx.fillText('LOSS',W-122,23);
-    ctx.font='bold 9px "Press Start 2P"';
-    ctx.fillStyle=loss>0.65?C.red:loss>0.35?C.gold:C.grn;
-    ctx.fillText(lossDisplay,W-122,38);
-
-    // Loss mini bar
-    ctx.fillStyle='rgba(74,45,122,0.4)';
-    ctx.fillRect(W-70,26,56,8);
-    ctx.fillStyle=loss>0.65?C.red:loss>0.35?C.gold:C.grn;
-    ctx.fillRect(W-70,26,56*(1-loss),8);
-
-    // Level & time
-    ctx.fillStyle='rgba(28,16,56,0.85)';
-    ctx.fillRect(10,10,140,36);
-    ctx.strokeStyle=C.brd; ctx.strokeRect(10,10,140,36);
-    ctx.font='6px "Press Start 2P"'; ctx.textAlign='left'; ctx.fillStyle=C.dim;
-    ctx.fillText('LEVEL '+(level+1)+' / 3',18,23);
-    ctx.font='bold 9px "Press Start 2P"'; ctx.fillStyle=C.gold;
-    ctx.fillText(elapsed.toFixed(1)+'s',18,38);
-
-    // Best time
-    if(bestTimes[level]!==null){
-      ctx.font='6px "Press Start 2P"'; ctx.fillStyle='rgba(192,132,252,0.6)';
-      ctx.fillText('BEST '+bestTimes[level].toFixed(1)+'s',80,38);
-    }
-
-    // Level name hint
-    const names=['CONVEX','BIMODAL','RUGGED'];
-    ctx.font='6px "Press Start 2P"'; ctx.textAlign='center'; ctx.fillStyle='rgba(155,127,192,0.4)';
-    ctx.fillText(names[level]+' LANDSCAPE',W/2,H-8);
-  }
-
-  function drawWin(){
-    ctx.fillStyle='rgba(10,5,20,0.7)'; ctx.fillRect(0,0,W,H);
-    ctx.textAlign='center';
-    // Glow
-    ctx.shadowColor=C.gold; ctx.shadowBlur=24;
-    ctx.font='bold 11px "Press Start 2P"'; ctx.fillStyle=C.gold;
-    ctx.fillText('GLOBAL MINIMUM FOUND!',W/2,130);
-    ctx.shadowBlur=0;
-    ctx.font='13px Inter,sans-serif'; ctx.fillStyle=C.txt;
-    ctx.fillText('Loss converged in '+elapsed.toFixed(2)+'s',W/2,162);
-    if(level<2){
-      ctx.font='bold 8px "Press Start 2P"'; ctx.fillStyle=C.purple;
-      ctx.globalAlpha=0.5+0.5*Math.sin(Date.now()*0.005);
-      ctx.fillText('PRESS SPACE/W - NEXT LEVEL',W/2,210);
-      ctx.globalAlpha=1;
-    } else {
-      ctx.font='bold 8px "Press Start 2P"'; ctx.fillStyle=C.grn;
-      ctx.globalAlpha=0.5+0.5*Math.sin(Date.now()*0.005);
-      ctx.fillText('PRESS SPACE/W - RESULTS',W/2,210);
-      ctx.globalAlpha=1;
-    }
-  }
-
-  function drawComplete(){
-    ctx.fillStyle=C.bg; ctx.fillRect(0,0,W,H);
-    ctx.textAlign='center';
-    ctx.shadowColor=C.gold; ctx.shadowBlur=18;
-    ctx.font='bold 11px "Press Start 2P"'; ctx.fillStyle=C.gold;
-    ctx.fillText('TRAINING COMPLETE',W/2,90);
-    ctx.shadowBlur=0;
-    ctx.font='13px Inter,sans-serif'; ctx.fillStyle=C.dim;
-    ctx.fillText('You navigated all three loss landscapes.',W/2,130);
-    ctx.fillText('Convex → Bimodal → Rugged',W/2,152);
-    [0,1,2].forEach((i)=>{
-      const t=bestTimes[i]!==null?bestTimes[i].toFixed(2)+'s':'-';
-      const names=['Convex (easy)','Bimodal (2 minima)','Rugged (complex)'];
-      ctx.fillStyle=C.brd; ctx.fillRect(W/2-140,180+i*42,280,34);
-      ctx.strokeStyle=C.brd; ctx.lineWidth=1; ctx.strokeRect(W/2-140,180+i*42,280,34);
-      ctx.font='bold 11px Inter,sans-serif'; ctx.fillStyle=C.txt; ctx.textAlign='left';
-      ctx.fillText(names[i],W/2-128,180+i*42+15);
-      ctx.font='bold 11px "Press Start 2P"'; ctx.fillStyle=C.gold; ctx.textAlign='right';
-      ctx.fillText(t,W/2+128,180+i*42+20);
+  function checkHover() {
+    const cx = critter.x + CW / 2, cy = critter.y + CH / 2;
+    const next = new Set();
+    els.forEach(el => {
+      const r = el.getBoundingClientRect();
+      if (cx >= r.left && cx <= r.right && cy >= r.top && cy <= r.bottom) next.add(el);
     });
-    ctx.font='11px Inter,sans-serif'; ctx.fillStyle='rgba(155,127,192,0.6)'; ctx.textAlign='center';
-    ctx.fillText('In real ML, gradient descent does this',W/2,322);
-    ctx.fillText('millions of times per second.',W/2,340);
-    // Retry
-    ctx.fillStyle=C.dim; ctx.globalAlpha=0.5+0.5*Math.sin(Date.now()*0.004);
-    ctx.font='bold 7px "Press Start 2P"'; ctx.fillText('CLICK TO PLAY AGAIN',W/2,H-8);
-    ctx.globalAlpha=1;
-    cv.onclick=function(){ cv.onclick=null; startLevel(0); };
+    active.forEach(el => { if (!next.has(el)) el.classList.remove('critter-hover'); });
+    next.forEach(el => { if (!active.has(el)) el.classList.add('critter-hover'); });
+    active = next;
   }
 
-  function onKey(e){
-    keys[e.code]=true;
-    if(e.code==='Space'||e.code==='ArrowUp'||e.code==='KeyW') e.preventDefault();
+  function update() {
+    critter.vx = 0; critter.vy = 0;
+    if (keys['ArrowLeft'])  { critter.vx = -SPEED; critter.facing = -1; }
+    if (keys['ArrowRight']) { critter.vx =  SPEED; critter.facing =  1; }
+    if (keys['ArrowUp'])    critter.vy = -SPEED;
+    if (keys['ArrowDown'])  critter.vy =  SPEED;
+
+    if (critter.vx && critter.vy) { critter.vx *= 0.707; critter.vy *= 0.707; }
+
+    const moving = critter.vx !== 0 || critter.vy !== 0;
+    if (moving) {
+      critter.frameTimer++;
+      if (critter.frameTimer > 8) { critter.frame ^= 1; critter.frameTimer = 0; }
+    } else {
+      critter.frame = 0; critter.frameTimer = 0;
+    }
+
+    critter.x = Math.max(0, Math.min(window.innerWidth  - CW, critter.x + critter.vx));
+    critter.y = Math.max(0, Math.min(window.innerHeight - CH, critter.y + critter.vy));
+
+    checkHover();
   }
+
+  function draw(t) {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    const frames = critter.facing === 1 ? [OWL_R_A, OWL_R_B] : [OWL_L_A, OWL_L_B];
+    drawCritter(frames[critter.frame], critter.x | 0, critter.y | 0);
+    drawHint(t);
+  }
+
+  function loop(t) { update(); draw(t || 0); requestAnimationFrame(loop); }
+
+  window.addEventListener('keydown', e => {
+    if (['ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.key)) {
+      keys[e.key] = true; e.preventDefault();
+      hint.fading = true;
+    }
+  });
+  window.addEventListener('keyup', e => { keys[e.key] = false; });
+
+  loop(0);
 })();
 </script>
 </body>
