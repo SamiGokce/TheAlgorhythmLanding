@@ -30,17 +30,16 @@
       z-index: 0;
     }
 
-    /* glow orbs */
-    .orb {
+    /* pixel sparkle layer — drawn by JS, no blur, no orbs */
+    #bg-sparkles {
       position: fixed;
-      border-radius: 50%;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
       pointer-events: none;
       z-index: 0;
-      filter: blur(80px);
+      image-rendering: pixelated;
     }
-    .orb-1 { width: 600px; height: 600px; background: rgba(124,58,237,0.08); top: -200px; left: -100px; }
-    .orb-2 { width: 500px; height: 500px; background: rgba(255,199,44,0.05); bottom: -150px; right: -100px; }
-    .orb-3 { width: 400px; height: 400px; background: rgba(22,101,52,0.08); top: 30%; right: -100px; }
 
     .page {
       position: relative;
@@ -66,7 +65,7 @@
       transition: color 0.2s;
     }
     .back:hover { color: #f0e8ff; }
-    .back::before { content: '◀ '; }
+    .back::before { content: '< '; }
 
     .wordmark {
       font-family: 'Press Start 2P', monospace;
@@ -94,12 +93,10 @@
       font-size: clamp(18px, 4vw, 32px);
       line-height: 1.5;
       letter-spacing: 0.04em;
-      background: linear-gradient(135deg, #f0e8ff 0%, #c084fc 40%, #ffc72c 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
+      color: #f0e8ff;
       margin-bottom: 20px;
     }
+    .hero h1 .gold { color: #ffc72c; }
 
     .hero-sub {
       font-size: 15px;
@@ -127,15 +124,15 @@
       position: relative;
     }
 
-    /* connector line between cards */
+    /* pixel-dashed connector line between cards */
     .tiers::before {
       content: '';
       position: absolute;
       top: 50%;
       left: calc(33.33% - 1px);
       right: calc(33.33% - 1px);
-      height: 1px;
-      background: linear-gradient(90deg, #3b1d6e, #ffc72c, #3b1d6e);
+      height: 2px;
+      background: repeating-linear-gradient(90deg, #4a2d7a 0 6px, transparent 6px 12px);
       z-index: 0;
       pointer-events: none;
     }
@@ -222,10 +219,12 @@
     }
 
     .card-icon {
-      font-size: 28px;
+      height: 48px;
       margin-bottom: 14px;
-      filter: saturate(0.8) brightness(1.2);
+      display: flex;
+      align-items: flex-end;
     }
+    .card-icon canvas { image-rendering: pixelated; }
 
     .card-name {
       font-family: 'Press Start 2P', monospace;
@@ -382,12 +381,13 @@
     .faq-q:hover { color: #f0e8ff; }
 
     .faq-chevron {
-      font-size: 10px;
+      font-family: 'Press Start 2P', monospace;
+      font-size: 8px;
       color: rgba(240,232,255,0.3);
       flex-shrink: 0;
-      transition: transform 0.2s;
     }
-    .faq-item.open .faq-chevron { transform: rotate(180deg); }
+    .faq-chevron::before { content: '[+]'; }
+    .faq-item.open .faq-chevron::before { content: '[-]'; }
 
     .faq-a {
       display: none;
@@ -415,9 +415,10 @@
     .cta-strip::before {
       content: '';
       position: absolute;
-      top: -1px; left: 30%; right: 30%;
+      top: -1px; left: calc(50% - 60px);
+      width: 120px;
       height: 2px;
-      background: linear-gradient(90deg, transparent, #ffc72c, transparent);
+      background: repeating-linear-gradient(90deg, #ffc72c 0 6px, transparent 6px 12px);
     }
 
     .cta-title {
@@ -461,9 +462,7 @@
   </style>
 </head>
 <body>
-  <div class="orb orb-1"></div>
-  <div class="orb orb-2"></div>
-  <div class="orb orb-3"></div>
+  <canvas id="bg-sparkles"></canvas>
 
   <div class="page">
 
@@ -476,17 +475,17 @@
     <!-- Hero -->
     <div class="hero">
       <div class="eyebrow">AI EDUCATION · KITCHENER-WATERLOO REGION</div>
-      <h1>THREE TIERS.<br>ONE JOURNEY.</h1>
+      <h1>THREE TIERS.<br><span class="gold">ONE JOURNEY.</span></h1>
       <p class="hero-sub">From your first block of code to your first deployed model — Algorhythm meets students where they are and takes them further than they thought possible.</p>
     </div>
 
     <!-- Tier cards -->
-    <div class="path-label">CHOOSE YOUR TIER ↓</div>
+    <div class="path-label">* SELECT YOUR TIER *</div>
 
     <div class="tiers">
       <a href="curriculum.html" class="tier-card t1">
         <div class="card-num">TIER 1</div>
-        <div class="card-icon">🌟</div>
+        <div class="card-icon"><canvas id="pix-t1" width="44" height="44"></canvas></div>
         <div class="card-name">SPARK</div>
         <div class="card-title">FIRST LIGHT</div>
         <div class="card-ages">Ages 7–9 · Grades 2–4</div>
@@ -497,12 +496,12 @@
           <span class="card-skill">Teachable Machine</span>
           <span class="card-skill">Scratch</span>
         </div>
-        <div class="card-cta">ENTER TIER 1 <span class="card-cta-arrow">▶</span></div>
+        <div class="card-cta">ENTER TIER 1 <span class="card-cta-arrow">&gt;</span></div>
       </a>
 
       <a href="tier2.html" class="tier-card t2">
         <div class="card-num">TIER 2</div>
-        <div class="card-icon">⚙️</div>
+        <div class="card-icon"><canvas id="pix-t2" width="48" height="48"></canvas></div>
         <div class="card-name">BUILD</div>
         <div class="card-title">GOING DEEPER</div>
         <div class="card-ages">Ages 10–13 · Grades 5–8</div>
@@ -513,12 +512,12 @@
           <span class="card-skill">Model Cards</span>
           <span class="card-skill">AI Ethics</span>
         </div>
-        <div class="card-cta">ENTER TIER 2 <span class="card-cta-arrow">▶</span></div>
+        <div class="card-cta">ENTER TIER 2 <span class="card-cta-arrow">&gt;</span></div>
       </a>
 
       <a href="tier3.html" class="tier-card t3">
         <div class="card-num">TIER 3</div>
-        <div class="card-icon">🚀</div>
+        <div class="card-icon"><canvas id="pix-t3" width="33" height="42"></canvas></div>
         <div class="card-name">LAUNCH</div>
         <div class="card-title">SHIP SOMETHING REAL</div>
         <div class="card-ages">Ages 14–17 · Grades 9–12</div>
@@ -529,7 +528,7 @@
           <span class="card-skill">Deployment</span>
           <span class="card-skill">AI Policy</span>
         </div>
-        <div class="card-cta">ENTER TIER 3 <span class="card-cta-arrow">▶</span></div>
+        <div class="card-cta">ENTER TIER 3 <span class="card-cta-arrow">&gt;</span></div>
       </a>
     </div>
 
@@ -564,23 +563,23 @@
     <div class="faq-label">FREQUENTLY ASKED</div>
     <div class="faq-list">
       <div class="faq-item" onclick="this.classList.toggle('open')">
-        <div class="faq-q">Can my child start at Tier 2 or 3 without doing Tier 1? <span class="faq-chevron">▼</span></div>
+        <div class="faq-q">Can my child start at Tier 2 or 3 without doing Tier 1? <span class="faq-chevron"></span></div>
         <div class="faq-a">Yes, with placement. Students who already have coding experience or a strong math background can be assessed for direct entry into Tier 2 or Tier 3. <b>Reach out to us for an informal assessment</b> — it takes 20 minutes and we'll tell you honestly where your child should start.</div>
       </div>
       <div class="faq-item" onclick="this.classList.toggle('open')">
-        <div class="faq-q">What does a session actually look like? <span class="faq-chevron">▼</span></div>
+        <div class="faq-q">What does a session actually look like? <span class="faq-chevron"></span></div>
         <div class="faq-a">Sessions run <b>weekly</b>: 60 min for Tier 1, 75 min for Tier 2, 90 min for Tier 3. Each session opens with a 5-minute challenge, moves through two structured activities with a facilitator, and closes with a reflection question. We don't do passive lectures — students are building or solving from the first minute.</div>
       </div>
       <div class="faq-item" onclick="this.classList.toggle('open')">
-        <div class="faq-q">Do students need their own computer? <span class="faq-chevron">▼</span></div>
+        <div class="faq-q">Do students need their own computer? <span class="faq-chevron"></span></div>
         <div class="faq-a">Tier 1: no device required. Tier 2: any device with a browser. Tier 3: a laptop is strongly recommended — a Chromebook works for most weeks, but some sessions (Flask, local Python) benefit from a real OS. <b>We can loan devices for students who need them</b> — just let us know when registering.</div>
       </div>
       <div class="faq-item" onclick="this.classList.toggle('open')">
-        <div class="faq-q">Is Tier 3 really at the University of Waterloo? <span class="faq-chevron">▼</span></div>
+        <div class="faq-q">Is Tier 3 really at the University of Waterloo? <span class="faq-chevron"></span></div>
         <div class="faq-a">Yes. Tier 3 sessions are held on the UW campus in Waterloo, ON. Facilitators are Algorhythm program leads; <b>UW Engineering and CS students serve as mentors</b> during build sessions and provide code review. The capstone Demo Day is open to UW faculty and community partners.</div>
       </div>
       <div class="faq-item" onclick="this.classList.toggle('open')">
-        <div class="faq-q">How do I register? <span class="faq-chevron">▼</span></div>
+        <div class="faq-q">How do I register? <span class="faq-chevron"></span></div>
         <div class="faq-a">Join the waitlist from the <a href="index.html" style="color:#c084fc">home page</a>. When spots open in the next cohort, waitlisted families are contacted first. Cohorts run <b>September–November</b> and <b>January–March</b> each year. Tier 3 also runs a summer intensive in July.</div>
       </div>
     </div>
@@ -593,5 +592,107 @@
     </div>
 
   </div>
+
+<script>
+(function(){
+  // ── Shared pixel renderer ──────────────────────
+  function drawMap(ctx, rows, pal, x0, y0, s){
+    rows.forEach((row, ry) => {
+      [...row].forEach((ch, rx) => {
+        if (ch === '.') return;
+        ctx.fillStyle = pal[ch];
+        ctx.fillRect(x0 + rx * s, y0 + ry * s, s, s);
+      });
+    });
+  }
+
+  // ── Tier icons ─────────────────────────────────
+  // Tier 1: 8-point spark (11×11 @ 4px)
+  const SPARK = [
+    '.....A.....',
+    '.....A.....',
+    '.A...A...A.',
+    '..A.AAA.A..',
+    '...ABBBA...',
+    'AAABBBBBAAA',
+    '...ABBBA...',
+    '..A.AAA.A..',
+    '.A...A...A.',
+    '.....A.....',
+    '.....A.....',
+  ];
+  // Tier 2: gear with hollow hub (12×12 @ 4px)
+  const GEAR = [
+    '..G..GG..G..',
+    '.GGG.GG.GGG.',
+    '.GGGGGGGGGG.',
+    '..GGGGGGGG..',
+    'G.GGG..GGG.G',
+    'GGGGG..GGGGG',
+    'GGGGG..GGGGG',
+    'G.GGG..GGG.G',
+    '..GGGGGGGG..',
+    '.GGGGGGGGGG.',
+    '.GGG.GG.GGG.',
+    '..G..GG..G..',
+  ];
+  // Tier 3: rocket with window, fins, flame (11×14 @ 3px)
+  const ROCKET = [
+    '.....R.....',
+    '....RRR....',
+    '....RRR....',
+    '...RRRRR...',
+    '...RWWRR...',
+    '...RWWRR...',
+    '...RRRRR...',
+    '..RRRRRRR..',
+    '.D.RRRRR.D.',
+    'DD.RRRRR.DD',
+    'DD.RRRRR.DD',
+    '....FfF....',
+    '....fFf....',
+    '.....F.....',
+  ];
+
+  function renderIcon(id, rows, pal, s){
+    const cv = document.getElementById(id);
+    if (!cv) return;
+    drawMap(cv.getContext('2d'), rows, pal, 0, 0, s);
+  }
+
+  renderIcon('pix-t1', SPARK,  { A:'#c084fc', B:'#f472b6' }, 4);
+  renderIcon('pix-t2', GEAR,   { G:'#3fb950' }, 4);
+  renderIcon('pix-t3', ROCKET, { R:'#c084fc', D:'#7c3aed', W:'#ffc72c', F:'#ffc72c', f:'#f87171' }, 3);
+
+  // ── Background pixel sparkles (replaces blur orbs) ──
+  const MINI = [
+    '..S..',
+    '..S..',
+    'SSSSS',
+    '..S..',
+    '..S..',
+  ];
+  const bg = document.getElementById('bg-sparkles');
+  function paintSparkles(){
+    bg.width = window.innerWidth;
+    bg.height = window.innerHeight;
+    const bctx = bg.getContext('2d');
+    // deterministic positions — no random flicker between resizes
+    const spots = [
+      [0.08, 0.12, '#c084fc'], [0.91, 0.08, '#ffc72c'], [0.15, 0.78, '#3fb950'],
+      [0.85, 0.62, '#c084fc'], [0.50, 0.05, '#f472b6'], [0.05, 0.45, '#ffc72c'],
+      [0.95, 0.35, '#3fb950'], [0.70, 0.88, '#c084fc'], [0.30, 0.30, '#ffc72c'],
+    ];
+    spots.forEach(([fx, fy, col], i) => {
+      bctx.globalAlpha = 0.18;
+      const s = i % 3 === 0 ? 3 : 2;
+      drawMap(bctx, MINI, { S: col }, fx * bg.width, fy * bg.height, s);
+    });
+    bctx.globalAlpha = 1;
+  }
+  paintSparkles();
+  window.addEventListener('resize', paintSparkles);
+})();
+</script>
 </body>
 </html>

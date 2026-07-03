@@ -49,7 +49,7 @@
       transition: color 0.2s;
     }
     .back:hover { color: #7c3aed; }
-    .back::before { content: '◀ '; }
+    .back::before { content: '< '; }
 
     /* ── Header ────────────────────────────────── */
     .header {
@@ -224,7 +224,7 @@
       box-shadow: 2px 2px 0 #bbf7d0;
     }
     .week-btn.done::after {
-      content: '✓';
+      content: '*';
       position: absolute;
       top: 2px;
       right: 5px;
@@ -445,7 +445,7 @@
 
     .progress-fill {
       height: 100%;
-      background: linear-gradient(90deg, #c084fc, #f472b6);
+      background: repeating-linear-gradient(90deg, #c084fc 0 8px, #f472b6 8px 16px);
       transition: width 0.4s;
     }
 
@@ -546,8 +546,8 @@
 
   <!-- Nav arrows -->
   <div class="week-nav-arrows">
-    <button class="nav-arrow" id="prev-btn" onclick="changeWeek(-1)">◀ PREV</button>
-    <button class="nav-arrow" id="next-btn" onclick="changeWeek(1)">NEXT ▶</button>
+    <button class="nav-arrow" id="prev-btn" onclick="changeWeek(-1)">&lt; PREV</button>
+    <button class="nav-arrow" id="next-btn" onclick="changeWeek(1)">NEXT &gt;</button>
   </div>
 
 
@@ -674,7 +674,7 @@ const weeks = [
       {
         time: "0–35 MIN",
         name: "LESSON 6.1A — BUILD YOUR SMART SORTER",
-        body: "Each student or pair designs a paper-based Smart Sorter: a branching yes/no flowchart on poster paper. They choose a category (animals, snacks, sports, vehicles, emotions) and create a decision tree that identifies items through yes/no questions. Example: Does it have legs? Yes → Does it fly? Yes → It's a bird! Students build and sketch their full flowchart on poster paper using markers."
+        body: "Each student or pair designs a paper-based Smart Sorter: a branching yes/no flowchart on poster paper. They choose a category (animals, snacks, sports, vehicles, emotions) and create a decision tree that identifies items through yes/no questions. Example: Does it have legs? Yes -> Does it fly? Yes -> It's a bird! Students build and sketch their full flowchart on poster paper using markers."
       },
       {
         time: "40–70 MIN",
@@ -778,7 +778,7 @@ function buildWeekDetail() {
           <div class="timeline-bar"></div>
           <div class="lesson-card" onclick="toggleLesson(this)">
             <div class="lesson-name">${l.name}</div>
-            <div class="lesson-toggle">▶ TAP TO EXPAND</div>
+            <div class="lesson-toggle">[+] TAP TO EXPAND</div>
             <div class="lesson-body">${l.body}</div>
           </div>
         </div>
@@ -820,7 +820,7 @@ function changeWeek(dir) {
 function toggleLesson(card) {
   card.classList.toggle('open');
   const toggle = card.querySelector('.lesson-toggle');
-  toggle.textContent = card.classList.contains('open') ? '▼ COLLAPSE' : '▶ TAP TO EXPAND';
+  toggle.textContent = card.classList.contains('open') ? '[-] COLLAPSE' : '[+] TAP TO EXPAND';
 }
 
 function toggleDone() {
@@ -838,7 +838,7 @@ function toggleDone() {
 function toggleOutcome(el) {
   el.classList.toggle('checked');
   const box = el.querySelector('.check-box');
-  box.textContent = el.classList.contains('checked') ? '✓' : '';
+  box.textContent = el.classList.contains('checked') ? '*' : '';
 }
 
 function updateProgress() {

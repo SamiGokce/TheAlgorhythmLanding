@@ -33,20 +33,6 @@
       line-height: 1.6;
     }
 
-    /* Radial glow from top */
-    body::before {
-      content: '';
-      position: fixed;
-      top: -200px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 900px;
-      height: 600px;
-      background: radial-gradient(ellipse at center, rgba(168,85,247,0.12) 0%, transparent 70%);
-      pointer-events: none;
-      z-index: 0;
-    }
-
     /* Subtle dot grid */
     body::after {
       content: '';
@@ -85,7 +71,7 @@
       transition: color 0.2s;
     }
     .back:hover { color: var(--text); }
-    .back::before { content: '◀ '; }
+    .back::before { content: '< '; }
 
     .tier-switch {
       display: flex;
@@ -142,13 +128,7 @@
       color: var(--dim);
       margin-bottom: 16px;
     }
-    .uw-badge::before {
-      content: '';
-      display: inline-block;
-      width: 16px; height: 16px;
-      background: var(--gold);
-      clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
-    }
+    .uw-badge canvas { image-rendering: pixelated; }
 
     .hero h1 {
       font-family: var(--pixel);
@@ -297,9 +277,8 @@
     .progress-fill {
       position: absolute;
       top: 0; left: 0; bottom: 0;
-      background: linear-gradient(90deg, var(--violet), var(--gold));
+      background: repeating-linear-gradient(90deg, var(--gold) 0 8px, rgba(255,199,44,0.45) 8px 16px);
       transition: width 0.4s;
-      box-shadow: 0 0 10px rgba(168,85,247,0.4);
     }
 
     .week-dots {
@@ -334,7 +313,6 @@
       top: 3px; right: 3px;
       width: 5px; height: 5px;
       background: var(--green);
-      border-radius: 50%;
     }
 
     /* ── Week detail ───────────────────────────── */
@@ -346,14 +324,6 @@
       margin-bottom: 24px;
       position: relative;
       overflow: hidden;
-    }
-    .week-detail::before {
-      content: '';
-      position: absolute;
-      top: 0; right: 0;
-      width: 200px; height: 200px;
-      background: radial-gradient(ellipse at top right, rgba(168,85,247,0.06), transparent 70%);
-      pointer-events: none;
     }
 
     .mission-header {
@@ -575,12 +545,8 @@
       gap: 20px;
       flex-wrap: wrap;
     }
-    .uw-strip-icon {
-      font-family: var(--pixel);
-      font-size: 20px;
-      color: var(--gold);
-      flex-shrink: 0;
-    }
+    .uw-strip-icon { flex-shrink: 0; line-height: 0; }
+    .uw-strip-icon canvas { image-rendering: pixelated; }
     .uw-strip-text { flex: 1; min-width: 200px; }
     .uw-strip-title {
       font-family: var(--pixel);
@@ -641,7 +607,7 @@
 
   <!-- Hero -->
   <div class="hero">
-    <div class="uw-badge">University of Waterloo · Faculty of Engineering Partnership</div>
+    <div class="uw-badge"><canvas id="uw-mini-star" width="15" height="15"></canvas>University of Waterloo · Faculty of Engineering Partnership</div>
     <div class="tier-badge"><div class="dot"></div>TIER 3 — LAUNCH</div>
     <h1>AI EXPLORERS+</h1>
     <div class="tagline">Stop prototyping. <em>Ship something real.</em></div>
@@ -682,13 +648,13 @@
 
   <!-- Nav -->
   <div class="nav-arrows" style="margin-bottom:48px">
-    <button class="nav-arrow" id="prev-btn" onclick="changeWeek(-1)">◀ PREV WEEK</button>
-    <button class="nav-arrow" id="next-btn" onclick="changeWeek(1)">NEXT WEEK ▶</button>
+    <button class="nav-arrow" id="prev-btn" onclick="changeWeek(-1)">&lt; PREV WEEK</button>
+    <button class="nav-arrow" id="next-btn" onclick="changeWeek(1)">NEXT WEEK &gt;</button>
   </div>
 
   <!-- UW strip -->
   <div class="uw-strip">
-    <div class="uw-strip-icon">★</div>
+    <div class="uw-strip-icon"><canvas id="uw-strip-star" width="36" height="36"></canvas></div>
     <div class="uw-strip-text">
       <div class="uw-strip-title">WHAT COMES AFTER TIER 3</div>
       <div class="uw-strip-body">
@@ -1123,7 +1089,7 @@ function buildDetail() {
         <div class="mission-sub">${w.sub}</div>
       </div>
       <button class="done-btn ${isDone ? 'done' : ''}" onclick="toggleDone()">
-        ${isDone ? '✓ COMPLETE' : 'MARK DONE'}
+        ${isDone ? '* COMPLETE' : 'MARK DONE'}
       </button>
     </div>
 
@@ -1135,7 +1101,7 @@ function buildDetail() {
           <div class="lesson-block" onclick="toggleLesson(this)">
             <div class="lesson-top">
               <div class="lesson-title">${l.title}</div>
-              <div class="lesson-toggle">▶ EXPAND</div>
+              <div class="lesson-toggle">[+] EXPAND</div>
             </div>
             ${l.tools.length ? `<div class="tool-tags">${l.tools.map(t=>`<span class="tool-tag">${t}</span>`).join('')}</div>` : ''}
             <div class="lesson-body">
@@ -1196,7 +1162,7 @@ function toggleDone() {
 
 function toggleLesson(el) {
   el.classList.toggle('open');
-  el.querySelector('.lesson-toggle').textContent = el.classList.contains('open') ? '▼ COLLAPSE' : '▶ EXPAND';
+  el.querySelector('.lesson-toggle').textContent = el.classList.contains('open') ? '[-] COLLAPSE' : '[+] EXPAND';
 }
 
 buildModules();
@@ -1204,6 +1170,40 @@ buildSkills();
 buildDots();
 buildDetail();
 updateProgress();
+
+// UW pixel stars (badge + strip icon)
+(function(){
+  const STAR9=[
+    '....G....',
+    '....G....',
+    '...GGG...',
+    'GGGGGGGGG',
+    '.GGGGGGG.',
+    '..GGGGG..',
+    '..GG.GG..',
+    '.GG...GG.',
+    '.G.....G.',
+  ];
+  const STAR5=[
+    '..G..',
+    '..G..',
+    'GGGGG',
+    '.GGG.',
+    'GG.GG',
+  ];
+  function paint(id,map,s){
+    const cv=document.getElementById(id);
+    if(!cv)return;
+    const c=cv.getContext('2d');
+    map.forEach((row,ry)=>[...row].forEach((ch,rx)=>{
+      if(ch==='.')return;
+      c.fillStyle='#ffc72c';
+      c.fillRect(rx*s,ry*s,s,s);
+    }));
+  }
+  paint('uw-mini-star',STAR5,3);
+  paint('uw-strip-star',STAR9,4);
+})();
 </script>
 
 <!-- ══ MINI GAME: GRADIENT DESCENT ══════════════════════ -->
@@ -1215,18 +1215,18 @@ updateProgress();
   box-shadow:0 0 16px rgba(255,199,44,0.15);
   transition:box-shadow 0.2s;
 " onmouseover="this.style.boxShadow='0 0 28px rgba(255,199,44,0.35)'"
-   onmouseout="this.style.boxShadow='0 0 16px rgba(255,199,44,0.15)'">▶ MINI GAME</button>
+   onmouseout="this.style.boxShadow='0 0 16px rgba(255,199,44,0.15)'">&gt;&gt; MINI GAME</button>
 
 <div id="g3modal" style="display:none;position:fixed;inset:0;background:rgba(10,5,20,0.97);
   z-index:9000;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:16px;">
   <div style="width:100%;max-width:540px;display:flex;justify-content:space-between;align-items:center">
     <span style="font-family:'Press Start 2P',monospace;font-size:8px;color:#ffc72c;letter-spacing:0.1em">GRADIENT DESCENT</span>
     <button onclick="g3Close()" style="font-family:'Press Start 2P',monospace;font-size:6px;
-      padding:6px 12px;background:transparent;border:1px solid #4a2d7a;color:#9b7fc0;cursor:pointer">✕ CLOSE</button>
+      padding:6px 12px;background:transparent;border:1px solid #4a2d7a;color:#9b7fc0;cursor:pointer">X CLOSE</button>
   </div>
   <canvas id="g3c" width="540" height="360" style="max-width:100%;border:1px solid #4a2d7a;display:block;"></canvas>
   <div style="font-family:'Press Start 2P',monospace;font-size:7px;color:#9b7fc0;letter-spacing:0.08em;text-align:center">
-    A / D or ← / → to move &nbsp;&nbsp; SPACE or W to jump
+    A/D OR ARROW KEYS TO MOVE &nbsp;&nbsp; SPACE/W TO JUMP
   </div>
 </div>
 
@@ -1238,6 +1238,38 @@ updateProgress();
     purple:'#c084fc',violet:'#a855f7',gold:'#ffc72c',
     dim:'#9b7fc0',txt:'#f0e8ff',grn:'#34d399',red:'#f87171',
   };
+
+  // Pixel sprites — no emoji in the canvas
+  const STAR=[
+    '....G....',
+    '....G....',
+    '...GGG...',
+    'GGGGGGGGG',
+    '.GGGGGGG.',
+    '..GGGGG..',
+    '..GG.GG..',
+    '.GG...GG.',
+    '.G.....G.',
+  ];
+  const WARN=[
+    '....Y....',
+    '...YYY...',
+    '...YBY...',
+    '..YYBYY..',
+    '..YYBYY..',
+    '.YYYYYYY.',
+    '.YYYBYYY.',
+    'YYYYYYYYY',
+  ];
+  function drawSprite(map,pal,x0,y0,s){
+    map.forEach((row,ry)=>{
+      [...row].forEach((ch,rx)=>{
+        if(ch==='.')return;
+        ctx.fillStyle=pal[ch];
+        ctx.fillRect(x0+rx*s,y0+ry*s,s,s);
+      });
+    });
+  }
 
   // Level terrain definitions — returns canvas-y of surface (higher y = lower on screen = lower loss)
   function buildTerrain(lv){
@@ -1431,25 +1463,20 @@ updateProgress();
     for(let x=1;x<=W;x++) ctx.lineTo(x,terrain[x]);
     ctx.stroke();
 
-    // Local minima warning signs
+    // Local minima warning signs (pixel triangle + !)
     localMinima.forEach(lx=>{
       const ly=terrain[lx];
-      ctx.font='11px sans-serif'; ctx.textAlign='center';
-      ctx.fillText('⚠️',lx,ly-22);
+      drawSprite(WARN,{Y:C.red,B:C.bg},lx-9,ly-40,2);
       ctx.font='bold 6px "Press Start 2P"'; ctx.fillStyle='rgba(248,113,113,0.8)';
+      ctx.textAlign='center';
       ctx.fillText('LOCAL',lx,ly-10);
       ctx.fillText('MIN',lx,ly-2);
     });
 
-    // Goal star (pulse)
+    // Goal star (pixel, bobbing)
     const gly=terrain[goalX];
-    const pulse=1+0.12*Math.sin(Date.now()*0.005);
-    ctx.save();
-    ctx.translate(goalX,gly-18);
-    ctx.scale(pulse,pulse);
-    ctx.font='18px sans-serif'; ctx.textAlign='center';
-    ctx.fillText('⭐',0,0);
-    ctx.restore();
+    const bob=Math.round(2*Math.sin(Date.now()*0.004));
+    drawSprite(STAR,{G:C.gold},goalX-9,gly-32+bob,2);
     ctx.font='bold 6px "Press Start 2P"'; ctx.fillStyle=C.gold;
     ctx.textAlign='center'; ctx.fillText('GLOBAL MIN',goalX,gly-2);
 
@@ -1457,7 +1484,7 @@ updateProgress();
     ctx.save();
     ctx.translate(14,H/2); ctx.rotate(-Math.PI/2);
     ctx.font='7px "Press Start 2P"'; ctx.fillStyle='rgba(155,127,192,0.5)';
-    ctx.textAlign='center'; ctx.fillText('LOSS ↑',0,0);
+    ctx.textAlign='center'; ctx.fillText('LOSS',0,0);
     ctx.restore();
 
     // Player
@@ -1571,12 +1598,12 @@ updateProgress();
     if(level<2){
       ctx.font='bold 8px "Press Start 2P"'; ctx.fillStyle=C.purple;
       ctx.globalAlpha=0.5+0.5*Math.sin(Date.now()*0.005);
-      ctx.fillText('PRESS SPACE / W — NEXT LEVEL',W/2,210);
+      ctx.fillText('PRESS SPACE/W - NEXT LEVEL',W/2,210);
       ctx.globalAlpha=1;
     } else {
       ctx.font='bold 8px "Press Start 2P"'; ctx.fillStyle=C.grn;
       ctx.globalAlpha=0.5+0.5*Math.sin(Date.now()*0.005);
-      ctx.fillText('PRESS SPACE / W — RESULTS',W/2,210);
+      ctx.fillText('PRESS SPACE/W - RESULTS',W/2,210);
       ctx.globalAlpha=1;
     }
   }
@@ -1592,7 +1619,7 @@ updateProgress();
     ctx.fillText('You navigated all three loss landscapes.',W/2,130);
     ctx.fillText('Convex → Bimodal → Rugged',W/2,152);
     [0,1,2].forEach((i)=>{
-      const t=bestTimes[i]!==null?bestTimes[i].toFixed(2)+'s':'—';
+      const t=bestTimes[i]!==null?bestTimes[i].toFixed(2)+'s':'-';
       const names=['Convex (easy)','Bimodal (2 minima)','Rugged (complex)'];
       ctx.fillStyle=C.brd; ctx.fillRect(W/2-140,180+i*42,280,34);
       ctx.strokeStyle=C.brd; ctx.lineWidth=1; ctx.strokeRect(W/2-140,180+i*42,280,34);

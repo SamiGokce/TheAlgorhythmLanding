@@ -71,7 +71,7 @@
       transition: color 0.2s;
     }
     .back:hover { color: var(--text); }
-    .back::before { content: '◀ '; }
+    .back::before { content: '< '; }
 
     .tier-switch {
       display: flex;
@@ -271,7 +271,7 @@
     .progress-fill {
       position: absolute;
       top: 0; left: 0; bottom: 0;
-      background: linear-gradient(90deg, var(--blue), var(--purple));
+      background: repeating-linear-gradient(90deg, var(--green) 0 8px, rgba(63,185,80,0.45) 8px 16px);
       transition: width 0.4s;
       box-shadow: 0 0 8px rgba(88,166,255,0.4);
     }
@@ -310,7 +310,6 @@
       top: 3px; right: 3px;
       width: 5px; height: 5px;
       background: var(--green);
-      border-radius: 50%;
     }
 
     /* ── Week detail ───────────────────────────── */
@@ -618,8 +617,8 @@
 
   <!-- Nav arrows -->
   <div class="nav-arrows">
-    <button class="nav-arrow" id="prev-btn" onclick="changeWeek(-1)">◀ PREV WEEK</button>
-    <button class="nav-arrow" id="next-btn" onclick="changeWeek(1)">NEXT WEEK ▶</button>
+    <button class="nav-arrow" id="prev-btn" onclick="changeWeek(-1)">&lt; PREV WEEK</button>
+    <button class="nav-arrow" id="next-btn" onclick="changeWeek(1)">NEXT WEEK &gt;</button>
   </div>
 
 </div>
@@ -951,7 +950,7 @@ function buildDetail() {
         <div class="mission-sub">${w.sub}</div>
       </div>
       <button class="done-btn ${isDone ? 'done' : ''}" onclick="toggleDone()">
-        ${isDone ? '✓ COMPLETE' : 'MARK DONE'}
+        ${isDone ? '* COMPLETE' : 'MARK DONE'}
       </button>
     </div>
 
@@ -963,7 +962,7 @@ function buildDetail() {
           <div class="lesson-block" onclick="toggleLesson(this)">
             <div class="lesson-top">
               <div class="lesson-title">${l.title}</div>
-              <div class="lesson-toggle">▶ EXPAND</div>
+              <div class="lesson-toggle">[+] EXPAND</div>
             </div>
             ${l.tools.length ? `<div class="tool-tags">${l.tools.map(t=>`<span class="tool-tag">${t}</span>`).join('')}</div>` : ''}
             <div class="lesson-body">
@@ -1025,7 +1024,7 @@ function toggleDone() {
 
 function toggleLesson(el) {
   el.classList.toggle('open');
-  el.querySelector('.lesson-toggle').textContent = el.classList.contains('open') ? '▼ COLLAPSE' : '▶ EXPAND';
+  el.querySelector('.lesson-toggle').textContent = el.classList.contains('open') ? '[-] COLLAPSE' : '[+] EXPAND';
 }
 
 // ── Init ──────────────────────────────────────────────────────────────────────
@@ -1045,18 +1044,18 @@ updateProgress();
   box-shadow:0 0 16px rgba(63,185,80,0.2);
   transition:box-shadow 0.2s,color 0.2s;
 " onmouseover="this.style.boxShadow='0 0 28px rgba(63,185,80,0.4)'"
-   onmouseout="this.style.boxShadow='0 0 16px rgba(63,185,80,0.2)'">▶ MINI GAME</button>
+   onmouseout="this.style.boxShadow='0 0 16px rgba(63,185,80,0.2)'">&gt;&gt; MINI GAME</button>
 
 <div id="g2modal" style="display:none;position:fixed;inset:0;background:rgba(8,20,13,0.97);
   z-index:9000;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:16px;">
   <div style="width:100%;max-width:480px;display:flex;justify-content:space-between;align-items:center">
     <span style="font-family:'Press Start 2P',monospace;font-size:8px;color:var(--green);letter-spacing:0.1em">SPAM FILTER SPRINT</span>
     <button onclick="g2Close()" style="font-family:'Press Start 2P',monospace;font-size:6px;
-      padding:6px 12px;background:transparent;border:1px solid var(--border);color:var(--dim);cursor:pointer">✕ CLOSE</button>
+      padding:6px 12px;background:transparent;border:1px solid var(--border);color:var(--dim);cursor:pointer">X CLOSE</button>
   </div>
   <canvas id="g2c" width="480" height="380" style="max-width:100%;border:1px solid var(--border);display:block;"></canvas>
   <div style="font-family:'Press Start 2P',monospace;font-size:7px;color:var(--dim);letter-spacing:0.1em;text-align:center">
-    ← SPAM &nbsp;&nbsp;&nbsp;&nbsp; HAM →
+    &lt; SPAM &nbsp;&nbsp;&nbsp;&nbsp; HAM &gt;
   </div>
 </div>
 
@@ -1083,6 +1082,32 @@ updateProgress();
            red:'#ff7b72',gld:'#e3b341',dim:'#7aaa88',txt:'#e8f5ec'};
   let cv,ctx,raf,state,score,lives,correct,total,timeLeft;
   let falling,fy,fv,fbOk,fbMsg,fbTimer,fbState,pool,pidx,streak,prevTs;
+
+  const HEART_FULL=[
+    '.XX.XX.',
+    'XXXXXXX',
+    'XXXXXXX',
+    '.XXXXX.',
+    '..XXX..',
+    '...X...',
+  ];
+  const HEART_EMPTY=[
+    '.XX.XX.',
+    'X..X..X',
+    'X.....X',
+    '.X...X.',
+    '..X.X..',
+    '...X...',
+  ];
+  function drawHeart(x0,y0,filled){
+    const map=filled?HEART_FULL:HEART_EMPTY;
+    ctx.fillStyle=filled?C.red:'rgba(255,123,114,0.4)';
+    map.forEach((row,ry)=>{
+      [...row].forEach((ch,rx)=>{
+        if(ch==='X')ctx.fillRect(x0+rx*2,y0+ry*2,2,2);
+      });
+    });
+  }
 
   window.g2Open=function(){
     document.getElementById('g2modal').style.display='flex';
@@ -1148,8 +1173,8 @@ updateProgress();
     ctx.fillStyle=C.dim;ctx.font='13px Inter,sans-serif';
     ctx.fillText('Sort emails before they fall!',W/2,196);
     ctx.fillText('60 seconds · 3 lives',W/2,218);
-    ctx.fillStyle=C.red;ctx.font='bold 8px "Press Start 2P"';ctx.fillText('← SPAM',W/4,258);
-    ctx.fillStyle=C.grn;ctx.fillText('HAM →',3*W/4,258);
+    ctx.fillStyle=C.red;ctx.font='bold 8px "Press Start 2P"';ctx.fillText('< SPAM',W/4,258);
+    ctx.fillStyle=C.grn;ctx.fillText('HAM >',3*W/4,258);
     ctx.fillStyle=C.txt;ctx.globalAlpha=0.5+0.5*Math.sin(Date.now()*0.004);
     ctx.font='bold 7px "Press Start 2P"';ctx.fillText('CLICK OR ANY KEY TO START',W/2,318);
     ctx.globalAlpha=1;
@@ -1164,8 +1189,7 @@ updateProgress();
     ctx.font='bold 8px "Press Start 2P"';
     ctx.textAlign='left';ctx.fillStyle=C.grn;ctx.fillText(score,14,26);
     ctx.textAlign='center';ctx.fillStyle=C.dim;ctx.fillText(Math.ceil(Math.max(0,timeLeft))+'s',W/2,26);
-    ctx.textAlign='right';ctx.fillStyle=C.red;
-    ctx.fillText('♥'.repeat(lives)+'♡'.repeat(3-lives),W-14,26);
+    for(let i=0;i<3;i++)drawHeart(W-62+i*17,14,i<lives);
     if(streak>=2){ctx.textAlign='left';ctx.fillStyle=C.gld;ctx.font='7px "Press Start 2P"';ctx.fillText('×'+streak+' STREAK',14,42);}
     // Divider
     ctx.strokeStyle=C.brd;ctx.setLineDash([4,4]);ctx.lineWidth=1;
