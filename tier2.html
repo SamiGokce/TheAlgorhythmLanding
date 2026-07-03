@@ -1035,5 +1035,212 @@ buildDots();
 buildDetail();
 updateProgress();
 </script>
+
+<!-- ══ MINI GAME: SPAM FILTER SPRINT ════════════════════ -->
+<button onclick="g2Open()" title="Play mini game" style="
+  position:fixed;bottom:24px;right:24px;z-index:888;
+  font-family:'Press Start 2P',monospace;font-size:7px;letter-spacing:0.08em;
+  padding:10px 14px;background:var(--bg);border:1px solid var(--green);
+  color:var(--green);cursor:pointer;
+  box-shadow:0 0 16px rgba(63,185,80,0.2);
+  transition:box-shadow 0.2s,color 0.2s;
+" onmouseover="this.style.boxShadow='0 0 28px rgba(63,185,80,0.4)'"
+   onmouseout="this.style.boxShadow='0 0 16px rgba(63,185,80,0.2)'">▶ MINI GAME</button>
+
+<div id="g2modal" style="display:none;position:fixed;inset:0;background:rgba(8,20,13,0.97);
+  z-index:9000;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:16px;">
+  <div style="width:100%;max-width:480px;display:flex;justify-content:space-between;align-items:center">
+    <span style="font-family:'Press Start 2P',monospace;font-size:8px;color:var(--green);letter-spacing:0.1em">SPAM FILTER SPRINT</span>
+    <button onclick="g2Close()" style="font-family:'Press Start 2P',monospace;font-size:6px;
+      padding:6px 12px;background:transparent;border:1px solid var(--border);color:var(--dim);cursor:pointer">✕ CLOSE</button>
+  </div>
+  <canvas id="g2c" width="480" height="380" style="max-width:100%;border:1px solid var(--border);display:block;"></canvas>
+  <div style="font-family:'Press Start 2P',monospace;font-size:7px;color:var(--dim);letter-spacing:0.1em;text-align:center">
+    ← SPAM &nbsp;&nbsp;&nbsp;&nbsp; HAM →
+  </div>
+</div>
+
+<script>
+(function(){
+  const EMAILS=[
+    ['FREE MONEY CLICK NOW!!!',1],['Meeting moved to Tuesday',0],
+    ['YOU HAVE WON $1,000,000',1],['Re: project notes today',0],
+    ['URGENT: verify account NOW',1],['Lunch at 12:30?',0],
+    ['Claim your FREE gift card',1],['Thanks for submitting!',0],
+    ['LIMITED TIME OFFER!!!',1],['Can you review this doc?',0],
+    ['Your package has shipped',0],['Hot singles in your area',1],
+    ['Reset your password',0],['Lose 20lbs in 2 weeks!!!',1],
+    ['See you at 3pm?',0],['Nigerian prince needs help',1],
+    ['Flight confirmation #XK9',0],['DOUBLE YOUR BITCOIN NOW',1],
+    ['Your subscription receipt',0],['MAKE MONEY FAST!!!',1],
+    ['Team standup in 10 mins',0],['Click here for FREE stuff',1],
+    ['Your order is confirmed',0],['ACT NOW — LIMITED SLOTS',1],
+    ['Draft attached — pls review',0],['You are SELECTED!!!',1],
+    ['Happy birthday from the team',0],['Claim your $500 reward',1],
+  ];
+  const W=480,H=380;
+  const C={bg:'#0d2117',sur:'#1a3525',brd:'#2d5a3d',grn:'#3fb950',
+           red:'#ff7b72',gld:'#e3b341',dim:'#7aaa88',txt:'#e8f5ec'};
+  let cv,ctx,raf,state,score,lives,correct,total,timeLeft;
+  let falling,fy,fv,fbOk,fbMsg,fbTimer,fbState,pool,pidx,streak,prevTs;
+
+  window.g2Open=function(){
+    document.getElementById('g2modal').style.display='flex';
+    cv=document.getElementById('g2c');
+    ctx=cv.getContext('2d');
+    window.addEventListener('keydown',onKey);
+    cv.addEventListener('click',onClick);
+    startGame();
+  };
+  window.g2Close=function(){
+    document.getElementById('g2modal').style.display='none';
+    cancelAnimationFrame(raf);
+    window.removeEventListener('keydown',onKey);
+    cv.removeEventListener('click',onClick);
+  };
+
+  function startGame(){
+    state='intro';score=0;lives=3;correct=0;total=0;streak=0;
+    timeLeft=60;fv=85;fbState=false;
+    pool=[...EMAILS].sort(()=>Math.random()-0.5);pidx=0;prevTs=null;
+    cancelAnimationFrame(raf);raf=requestAnimationFrame(tick);
+  }
+  function nextItem(){
+    if(pidx>=pool.length){pool=[...EMAILS].sort(()=>Math.random()-0.5);pidx=0;}
+    falling=pool[pidx++];fy=-70;state='playing';
+  }
+  function classify(isSpam){
+    if(state!=='playing')return;
+    total++;
+    const ok=(isSpam?1:0)===falling[1];
+    if(ok){streak++;const b=Math.min(streak,6)*2;score+=10+b;correct++;if(correct%7===0)fv=Math.min(fv+14,185);}
+    else{streak=0;lives--;}
+    fbOk=ok;fbMsg=ok?'+'+(10+Math.min(streak,6)*2)+' CORRECT!':'WRONG!';
+    fbTimer=0.55;fbState=true;
+    state=lives<=0?'over':'feedback';
+  }
+
+  function tick(ts){
+    raf=requestAnimationFrame(tick);
+    const dt=prevTs?Math.min((ts-prevTs)/1000,0.05):0;prevTs=ts;
+    ctx.fillStyle=C.bg;ctx.fillRect(0,0,W,H);
+
+    if(state==='intro'){drawIntro();}
+    else if(state==='playing'||state==='feedback'){
+      if(state==='playing'){
+        timeLeft-=dt;
+        if(timeLeft<=0){timeLeft=0;state='over';}
+        fy+=fv*dt;
+        if(fy>H+60){lives--;streak=0;fbOk=false;fbMsg='TOO SLOW!';fbTimer=0.55;fbState=true;state=lives<=0?'over':'feedback';}
+      } else {
+        fbTimer-=dt;fy+=fv*dt;
+        if(fbTimer<=0){fbState=false;nextItem();}
+      }
+      drawGame();
+      if(fbState)drawFB();
+    } else if(state==='over'){drawOver();}
+  }
+
+  function drawIntro(){
+    ctx.textAlign='center';
+    ctx.fillStyle=C.grn;ctx.font='bold 11px "Press Start 2P"';
+    ctx.fillText('SPAM FILTER',W/2,130);ctx.fillText('SPRINT',W/2,154);
+    ctx.fillStyle=C.dim;ctx.font='13px Inter,sans-serif';
+    ctx.fillText('Sort emails before they fall!',W/2,196);
+    ctx.fillText('60 seconds · 3 lives',W/2,218);
+    ctx.fillStyle=C.red;ctx.font='bold 8px "Press Start 2P"';ctx.fillText('← SPAM',W/4,258);
+    ctx.fillStyle=C.grn;ctx.fillText('HAM →',3*W/4,258);
+    ctx.fillStyle=C.txt;ctx.globalAlpha=0.5+0.5*Math.sin(Date.now()*0.004);
+    ctx.font='bold 7px "Press Start 2P"';ctx.fillText('CLICK OR ANY KEY TO START',W/2,318);
+    ctx.globalAlpha=1;
+  }
+
+  function drawGame(){
+    // Timer bar
+    const pct=Math.max(0,timeLeft/60);
+    ctx.fillStyle=C.sur;ctx.fillRect(0,0,W,5);
+    ctx.fillStyle=pct>0.4?C.grn:pct>0.2?C.gld:C.red;ctx.fillRect(0,0,W*pct,5);
+    // HUD
+    ctx.font='bold 8px "Press Start 2P"';
+    ctx.textAlign='left';ctx.fillStyle=C.grn;ctx.fillText(score,14,26);
+    ctx.textAlign='center';ctx.fillStyle=C.dim;ctx.fillText(Math.ceil(Math.max(0,timeLeft))+'s',W/2,26);
+    ctx.textAlign='right';ctx.fillStyle=C.red;
+    ctx.fillText('♥'.repeat(lives)+'♡'.repeat(3-lives),W-14,26);
+    if(streak>=2){ctx.textAlign='left';ctx.fillStyle=C.gld;ctx.font='7px "Press Start 2P"';ctx.fillText('×'+streak+' STREAK',14,42);}
+    // Divider
+    ctx.strokeStyle=C.brd;ctx.setLineDash([4,4]);ctx.lineWidth=1;
+    ctx.beginPath();ctx.moveTo(W/2,48);ctx.lineTo(W/2,H);ctx.stroke();ctx.setLineDash([]);
+    // Buckets
+    const bY=H-85;
+    ctx.fillStyle='rgba(255,123,114,0.06)';ctx.fillRect(2,bY,W/2-4,83);
+    ctx.strokeStyle='rgba(255,123,114,0.3)';ctx.strokeRect(2,bY,W/2-4,83);
+    ctx.font='bold 9px "Press Start 2P"';ctx.textAlign='center';ctx.fillStyle=C.red;
+    ctx.fillText('SPAM',W/4,bY+35);
+    ctx.font='10px Inter,sans-serif';ctx.fillStyle='rgba(255,123,114,0.5)';ctx.fillText('← left arrow',W/4,bY+57);
+    ctx.fillStyle='rgba(63,185,80,0.06)';ctx.fillRect(W/2+2,bY,W/2-4,83);
+    ctx.strokeStyle='rgba(63,185,80,0.3)';ctx.strokeRect(W/2+2,bY,W/2-4,83);
+    ctx.font='bold 9px "Press Start 2P"';ctx.fillStyle=C.grn;ctx.fillText('HAM',3*W/4,bY+35);
+    ctx.font='10px Inter,sans-serif';ctx.fillStyle='rgba(63,185,80,0.5)';ctx.fillText('right arrow →',3*W/4,bY+57);
+    // Falling card
+    if(falling)drawCard(fy);
+    // Accuracy
+    if(total>0){ctx.textAlign='center';ctx.fillStyle='rgba(122,170,136,0.45)';ctx.font='10px Inter,sans-serif';ctx.fillText(Math.round(correct/total*100)+'% accurate',W/2,H-8);}
+  }
+
+  function drawCard(y){
+    const CW=288,CH=68,cx=(W-CW)/2;
+    ctx.fillStyle=C.sur;ctx.fillRect(cx,y,CW,CH);
+    ctx.strokeStyle=C.brd;ctx.lineWidth=1;ctx.strokeRect(cx,y,CW,CH);
+    ctx.fillStyle=C.dim;ctx.font='9px Inter,sans-serif';ctx.textAlign='left';
+    ctx.fillText('FROM: unknown@mail.com',cx+10,y+17);
+    ctx.fillStyle=C.brd;ctx.fillRect(cx,y+22,CW,1);
+    ctx.fillStyle=C.txt;ctx.font='bold 12px Inter,sans-serif';
+    const t=falling[0];
+    if(ctx.measureText(t).width>CW-20){ctx.font='bold 11px Inter,sans-serif';}
+    ctx.fillText(t,cx+10,y+48);
+  }
+
+  function drawFB(){
+    ctx.fillStyle=fbOk?'rgba(63,185,80,0.1)':'rgba(255,123,114,0.13)';ctx.fillRect(0,0,W,H);
+    ctx.textAlign='center';ctx.font='bold 12px "Press Start 2P"';
+    ctx.fillStyle=fbOk?C.grn:C.red;ctx.fillText(fbMsg,W/2,H/2-14);
+    if(!fbOk&&falling){ctx.font='11px Inter,sans-serif';ctx.fillStyle=C.dim;ctx.fillText('Answer: '+(falling[1]?'SPAM':'HAM'),W/2,H/2+12);}
+  }
+
+  function drawOver(){
+    ctx.textAlign='center';ctx.font='bold 12px "Press Start 2P"';ctx.fillStyle=C.grn;ctx.fillText('SESSION COMPLETE',W/2,92);
+    ctx.font='bold 10px "Press Start 2P"';ctx.fillStyle=C.txt;ctx.fillText('SCORE: '+score,W/2,130);
+    const acc=total>0?Math.round(correct/total*100):0;
+    ctx.font='13px Inter,sans-serif';ctx.fillStyle=C.dim;
+    ctx.fillText(correct+' / '+total+' correct — '+acc+'% accuracy',W/2,168);
+    let gc,gt;
+    if(acc>=90){gc=C.grn;gt='Near Gmail-tier filter accuracy!';}
+    else if(acc>=78){gc=C.gld;gt='Good — model needs refinement';}
+    else if(acc>=60){gc='#f0883e';gt='Decent — more training data needed';}
+    else{gc=C.red;gt='Model needs much more training!';}
+    ctx.fillStyle=gc;ctx.font='bold 11px Inter,sans-serif';ctx.fillText(gt,W/2,200);
+    ctx.fillStyle='rgba(122,170,136,0.55)';ctx.font='11px Inter,sans-serif';
+    ctx.fillText('Real spam filters use millions of labeled emails.',W/2,234);
+    ctx.fillText('Google claims 99.9%+ accuracy on Gmail.',W/2,252);
+    ctx.fillStyle=C.dim;ctx.globalAlpha=0.5+0.5*Math.sin(Date.now()*0.004);
+    ctx.font='bold 7px "Press Start 2P"';ctx.fillText('CLICK OR ENTER TO RETRY',W/2,314);ctx.globalAlpha=1;
+  }
+
+  function onKey(e){
+    if(state==='intro'){nextItem();return;}
+    if(state==='over'){if(e.key==='Enter'||e.key===' ')startGame();return;}
+    if(state!=='playing')return;
+    if(e.key==='ArrowLeft'||e.key==='a'||e.key==='A')classify(true);
+    if(e.key==='ArrowRight'||e.key==='d'||e.key==='D')classify(false);
+  }
+  function onClick(e){
+    if(state==='intro'){nextItem();return;}
+    if(state==='over'){startGame();return;}
+    if(state!=='playing')return;
+    const r=cv.getBoundingClientRect();
+    classify((e.clientX-r.left)*(W/r.width)<W/2);
+  }
+})();
+</script>
 </body>
 </html>
