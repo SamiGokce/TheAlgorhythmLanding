@@ -1,0 +1,1209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Algorhythm — Tier 3 Launch</title>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg:       #130926;
+      --surface:  #1c1038;
+      --surface2: #251548;
+      --border:   #4a2d7a;
+      --text:     #f0e8ff;
+      --dim:      #9b7fc0;
+      --gold:     #ffc72c;
+      --gold-dim: rgba(255,199,44,0.15);
+      --purple:   #c084fc;
+      --violet:   #a855f7;
+      --indigo:   #818cf8;
+      --green:    #34d399;
+      --pixel:    'Press Start 2P', monospace;
+      --body:     'Inter', system-ui, sans-serif;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    html, body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--body);
+      overflow-x: hidden;
+      line-height: 1.6;
+    }
+
+    /* Radial glow from top */
+    body::before {
+      content: '';
+      position: fixed;
+      top: -200px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 900px;
+      height: 600px;
+      background: radial-gradient(ellipse at center, rgba(168,85,247,0.12) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* Subtle dot grid */
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: radial-gradient(circle, rgba(192,132,252,0.07) 1px, transparent 1px);
+      background-size: 30px 30px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .page {
+      position: relative;
+      z-index: 1;
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 40px 24px 100px;
+    }
+
+    /* ── Top nav ───────────────────────────────── */
+    .topnav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 56px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .back {
+      font-family: var(--pixel);
+      font-size: 6px;
+      color: var(--dim);
+      text-decoration: none;
+      letter-spacing: 0.1em;
+      transition: color 0.2s;
+    }
+    .back:hover { color: var(--text); }
+    .back::before { content: '◀ '; }
+
+    .tier-switch {
+      display: flex;
+      gap: 6px;
+    }
+    .tier-pill {
+      font-family: var(--pixel);
+      font-size: 6px;
+      letter-spacing: 0.08em;
+      padding: 6px 12px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--dim);
+      text-decoration: none;
+      transition: all 0.15s;
+    }
+    .tier-pill:hover { border-color: var(--purple); color: var(--purple); }
+    .tier-pill.active {
+      border-color: var(--gold);
+      color: var(--gold);
+      background: var(--gold-dim);
+    }
+
+    /* ── Hero ──────────────────────────────────── */
+    .hero { margin-bottom: 48px; }
+
+    .tier-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      font-family: var(--pixel);
+      font-size: 7px;
+      letter-spacing: 0.12em;
+      color: var(--gold);
+      border: 1px solid rgba(255,199,44,0.5);
+      padding: 7px 16px;
+      margin-bottom: 22px;
+      background: var(--gold-dim);
+    }
+    .tier-badge .dot {
+      width: 6px; height: 6px;
+      background: var(--gold);
+      box-shadow: 0 0 10px var(--gold);
+      flex-shrink: 0;
+    }
+
+    .uw-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      color: var(--dim);
+      margin-bottom: 16px;
+    }
+    .uw-badge::before {
+      content: '';
+      display: inline-block;
+      width: 16px; height: 16px;
+      background: var(--gold);
+      clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+    }
+
+    .hero h1 {
+      font-family: var(--pixel);
+      font-size: clamp(16px, 3.5vw, 28px);
+      letter-spacing: 0.04em;
+      line-height: 1.5;
+      color: var(--text);
+      margin-bottom: 14px;
+    }
+
+    .hero .tagline {
+      font-size: 15px;
+      color: var(--dim);
+      font-weight: 500;
+    }
+    .hero .tagline em {
+      color: var(--gold);
+      font-style: normal;
+      font-weight: 700;
+    }
+
+    /* ── Info row ──────────────────────────────── */
+    .info-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 48px;
+    }
+
+    .info-chip {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 6px 12px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--dim);
+    }
+    .info-chip b { color: var(--text); }
+
+    /* ── Module grid ───────────────────────────── */
+    .section-label {
+      font-family: var(--pixel);
+      font-size: 7px;
+      letter-spacing: 0.1em;
+      color: var(--dim);
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .section-label::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    .modules-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      gap: 10px;
+      margin-bottom: 48px;
+    }
+
+    .module-card {
+      padding: 16px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-top: 2px solid var(--mod-color, var(--violet));
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .module-card:hover { background: var(--surface2); }
+
+    .module-num {
+      font-family: var(--pixel);
+      font-size: 7px;
+      color: var(--mod-color, var(--violet));
+      margin-bottom: 8px;
+      letter-spacing: 0.06em;
+    }
+    .module-name {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text);
+      line-height: 1.4;
+      margin-bottom: 4px;
+    }
+    .module-weeks {
+      font-size: 10px;
+      color: var(--dim);
+    }
+
+    /* ── Skills ────────────────────────────────── */
+    .skills-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 48px;
+    }
+
+    .skill-tag {
+      font-size: 11px;
+      font-family: 'Courier New', monospace;
+      padding: 5px 10px;
+      background: rgba(168,85,247,0.07);
+      border: 1px solid rgba(168,85,247,0.25);
+      color: var(--purple);
+      cursor: pointer;
+      transition: all 0.1s;
+      user-select: none;
+    }
+    .skill-tag::before { content: '>>> '; color: var(--border); }
+    .skill-tag:hover { border-color: var(--violet); background: rgba(168,85,247,0.12); }
+    .skill-tag.done { color: var(--dim); border-color: var(--border); background: transparent; text-decoration: line-through; }
+    .skill-tag.done::before { color: rgba(74,45,122,0.4); }
+
+    /* ── Progress ──────────────────────────────── */
+    .progress-section { margin-bottom: 48px; }
+
+    .progress-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 10px;
+    }
+    .progress-meta .label {
+      font-family: var(--pixel);
+      font-size: 7px;
+      color: var(--dim);
+      letter-spacing: 0.08em;
+    }
+    .progress-meta .count {
+      font-family: var(--pixel);
+      font-size: 9px;
+      color: var(--gold);
+    }
+
+    .progress-track {
+      height: 4px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      position: relative;
+      margin-bottom: 16px;
+    }
+    .progress-fill {
+      position: absolute;
+      top: 0; left: 0; bottom: 0;
+      background: linear-gradient(90deg, var(--violet), var(--gold));
+      transition: width 0.4s;
+      box-shadow: 0 0 10px rgba(168,85,247,0.4);
+    }
+
+    .week-dots {
+      display: flex;
+      gap: 6px;
+    }
+    .week-dot-btn {
+      flex: 1;
+      height: 36px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--dim);
+      font-family: var(--pixel);
+      font-size: 7px;
+      cursor: pointer;
+      transition: all 0.12s;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .week-dot-btn:hover { border-color: var(--violet); color: var(--text); }
+    .week-dot-btn.active {
+      border-color: var(--mod-color, var(--gold));
+      color: var(--mod-color, var(--gold));
+      background: rgba(255,199,44,0.06);
+      box-shadow: 0 0 12px rgba(255,199,44,0.12);
+    }
+    .week-dot-btn.done::after {
+      content: '';
+      position: absolute;
+      top: 3px; right: 3px;
+      width: 5px; height: 5px;
+      background: var(--green);
+      border-radius: 50%;
+    }
+
+    /* ── Week detail ───────────────────────────── */
+    .week-detail {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-top: 2px solid var(--mod-color, var(--gold));
+      padding: 28px;
+      margin-bottom: 24px;
+      position: relative;
+      overflow: hidden;
+    }
+    .week-detail::before {
+      content: '';
+      position: absolute;
+      top: 0; right: 0;
+      width: 200px; height: 200px;
+      background: radial-gradient(ellipse at top right, rgba(168,85,247,0.06), transparent 70%);
+      pointer-events: none;
+    }
+
+    .mission-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      flex-wrap: wrap;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .mission-label {
+      font-family: var(--pixel);
+      font-size: 7px;
+      color: var(--mod-color, var(--gold));
+      letter-spacing: 0.1em;
+      margin-bottom: 8px;
+    }
+
+    .mission-title {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--text);
+      line-height: 1.3;
+    }
+
+    .mission-sub {
+      font-size: 12px;
+      color: var(--dim);
+      margin-top: 4px;
+    }
+
+    .done-btn {
+      font-family: var(--pixel);
+      font-size: 6px;
+      padding: 8px 14px;
+      background: transparent;
+      border: 1px solid var(--green);
+      color: var(--green);
+      cursor: pointer;
+      letter-spacing: 0.06em;
+      transition: all 0.1s;
+      flex-shrink: 0;
+      white-space: nowrap;
+    }
+    .done-btn:hover { background: rgba(52,211,153,0.08); }
+    .done-btn.done { background: rgba(52,211,153,0.1); }
+
+    /* ── Lessons ───────────────────────────────── */
+    .lessons { display: flex; flex-direction: column; gap: 2px; }
+
+    .time-row { display: flex; gap: 16px; align-items: stretch; }
+
+    .time-col {
+      width: 64px;
+      flex-shrink: 0;
+      font-size: 10px;
+      font-family: 'Courier New', monospace;
+      color: var(--dim);
+      padding-top: 16px;
+      text-align: right;
+    }
+
+    .time-line {
+      width: 1px;
+      flex-shrink: 0;
+      background: var(--border);
+      position: relative;
+    }
+    .time-line::before {
+      content: '';
+      position: absolute;
+      top: 14px; left: -3px;
+      width: 7px; height: 7px;
+      background: var(--mod-color, var(--gold));
+      box-shadow: 0 0 8px var(--mod-color, var(--gold));
+    }
+
+    .lesson-block {
+      flex: 1;
+      padding: 14px 18px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      margin-bottom: 2px;
+      cursor: pointer;
+      transition: border-color 0.12s, background 0.12s;
+    }
+    .lesson-block:hover { border-color: rgba(168,85,247,0.5); }
+    .lesson-block.open {
+      border-color: var(--mod-color, var(--violet));
+      background: rgba(168,85,247,0.04);
+    }
+
+    .lesson-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .lesson-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text);
+      line-height: 1.4;
+    }
+
+    .lesson-toggle {
+      font-size: 10px;
+      color: var(--dim);
+      flex-shrink: 0;
+      margin-top: 2px;
+      transition: color 0.1s;
+    }
+    .lesson-block.open .lesson-toggle { color: var(--purple); }
+
+    .tool-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 8px;
+    }
+
+    .tool-tag {
+      font-size: 9px;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      padding: 2px 8px;
+      background: rgba(168,85,247,0.08);
+      border: 1px solid rgba(168,85,247,0.25);
+      color: var(--purple);
+    }
+
+    .lesson-body {
+      display: none;
+      margin-top: 14px;
+      padding-top: 14px;
+      border-top: 1px solid var(--border);
+      font-size: 13px;
+      color: var(--dim);
+      line-height: 1.8;
+    }
+    .lesson-block.open .lesson-body { display: block; }
+    .lesson-body b { color: var(--text); font-weight: 600; }
+
+    .callout {
+      margin-top: 12px;
+      padding: 10px 14px;
+      border-left: 3px solid var(--gold);
+      background: var(--gold-dim);
+      font-size: 12px;
+      color: var(--text);
+    }
+    .callout-label {
+      font-family: var(--pixel);
+      font-size: 6px;
+      color: var(--gold);
+      letter-spacing: 0.08em;
+      margin-bottom: 4px;
+    }
+
+    /* Code block */
+    .code-block {
+      margin-top: 12px;
+      padding: 12px 14px;
+      background: rgba(0,0,0,0.3);
+      border: 1px solid var(--border);
+      font-family: 'Courier New', monospace;
+      font-size: 11px;
+      color: var(--purple);
+      line-height: 1.8;
+      overflow-x: auto;
+    }
+    .code-block .kw { color: var(--gold); }
+    .code-block .cm { color: var(--dim); font-style: italic; }
+    .code-block .st { color: var(--green); }
+
+    .break-row { display: flex; gap: 16px; align-items: center; margin: 2px 0; }
+    .break-bar {
+      flex: 1;
+      padding: 6px 18px;
+      font-size: 10px;
+      color: var(--border);
+      letter-spacing: 0.12em;
+      font-family: 'Courier New', monospace;
+      text-align: center;
+    }
+
+    .wrap-row { display: flex; gap: 16px; margin-top: 2px; }
+    .wrap-block {
+      flex: 1;
+      padding: 12px 18px;
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--gold);
+      background: var(--gold-dim);
+    }
+    .wrap-label {
+      font-family: var(--pixel);
+      font-size: 6px;
+      color: var(--gold);
+      letter-spacing: 0.08em;
+      margin-bottom: 6px;
+    }
+    .wrap-text {
+      font-size: 12px;
+      color: var(--dim);
+      line-height: 1.7;
+      font-style: italic;
+    }
+
+    /* ── UW callout strip ──────────────────────── */
+    .uw-strip {
+      margin: 48px 0;
+      padding: 20px 24px;
+      border: 1px solid rgba(255,199,44,0.3);
+      background: var(--gold-dim);
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+    .uw-strip-icon {
+      font-family: var(--pixel);
+      font-size: 20px;
+      color: var(--gold);
+      flex-shrink: 0;
+    }
+    .uw-strip-text { flex: 1; min-width: 200px; }
+    .uw-strip-title {
+      font-family: var(--pixel);
+      font-size: 8px;
+      color: var(--gold);
+      letter-spacing: 0.1em;
+      margin-bottom: 6px;
+    }
+    .uw-strip-body {
+      font-size: 12px;
+      color: var(--dim);
+      line-height: 1.7;
+    }
+    .uw-strip-body b { color: var(--text); }
+
+    /* ── Nav ───────────────────────────────────── */
+    .nav-arrows {
+      display: flex;
+      gap: 10px;
+      justify-content: space-between;
+    }
+    .nav-arrow {
+      font-family: var(--pixel);
+      font-size: 7px;
+      padding: 10px 20px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--dim);
+      cursor: pointer;
+      letter-spacing: 0.06em;
+      transition: all 0.12s;
+    }
+    .nav-arrow:hover { border-color: var(--violet); color: var(--purple); }
+    .nav-arrow:disabled { opacity: 0.2; cursor: not-allowed; }
+
+    @media (max-width: 640px) {
+      .page { padding: 24px 14px 80px; }
+      .time-col, .time-line { display: none; }
+      .week-detail { padding: 16px; }
+      .mission-title { font-size: 16px; }
+      .week-dot-btn { font-size: 6px; height: 30px; }
+      .modules-grid { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+<div class="page">
+
+  <!-- Top nav -->
+  <div class="topnav">
+    <a href="index.html" class="back">HOME</a>
+    <div class="tier-switch">
+      <a href="curriculum.html" class="tier-pill">TIER 1</a>
+      <a href="tier2.html" class="tier-pill">TIER 2</a>
+      <a href="tier3.html" class="tier-pill active">TIER 3</a>
+    </div>
+  </div>
+
+  <!-- Hero -->
+  <div class="hero">
+    <div class="uw-badge">University of Waterloo · Faculty of Engineering Partnership</div>
+    <div class="tier-badge"><div class="dot"></div>TIER 3 — LAUNCH</div>
+    <h1>AI EXPLORERS+</h1>
+    <div class="tagline">Stop prototyping. <em>Ship something real.</em></div>
+  </div>
+
+  <!-- Info -->
+  <div class="info-row">
+    <div class="info-chip">Ages <b>14–17</b> / Grades <b>9–12</b></div>
+    <div class="info-chip"><b>10 Weeks</b> · 90 min/session</div>
+    <div class="info-chip">Prereq <b>Tier 2 or interview</b></div>
+    <div class="info-chip">Venue <b>University of Waterloo</b></div>
+    <div class="info-chip">Mentors <b>UW Eng & CS Students</b></div>
+  </div>
+
+  <!-- Modules -->
+  <div class="section-label">MODULES</div>
+  <div class="modules-grid" id="modules-grid"></div>
+
+  <!-- Skills -->
+  <div class="section-label">SKILLS YOU'LL UNLOCK</div>
+  <div class="skills-grid" id="skills-grid"></div>
+
+  <!-- Progress -->
+  <div class="progress-section">
+    <div class="section-label">PROGRESS</div>
+    <div class="progress-meta">
+      <span class="label">WEEKS COMPLETED</span>
+      <span class="count" id="progress-count">0 / 10</span>
+    </div>
+    <div class="progress-track">
+      <div class="progress-fill" id="progress-fill" style="width:0%"></div>
+    </div>
+    <div class="week-dots" id="week-dots"></div>
+  </div>
+
+  <!-- Week detail -->
+  <div class="week-detail" id="week-detail"></div>
+
+  <!-- Nav -->
+  <div class="nav-arrows" style="margin-bottom:48px">
+    <button class="nav-arrow" id="prev-btn" onclick="changeWeek(-1)">◀ PREV WEEK</button>
+    <button class="nav-arrow" id="next-btn" onclick="changeWeek(1)">NEXT WEEK ▶</button>
+  </div>
+
+  <!-- UW strip -->
+  <div class="uw-strip">
+    <div class="uw-strip-icon">★</div>
+    <div class="uw-strip-text">
+      <div class="uw-strip-title">WHAT COMES AFTER TIER 3</div>
+      <div class="uw-strip-body">
+        Tier 3 graduates are eligible for <b>UWaterloo mentorship connections</b>, letters of support for university applications, and priority referrals to <b>co-op, research assistant, and summer internship programs</b> at partner organizations.
+        The best capstone projects are presented at UWaterloo's <b>Engineering Open House</b> and may be continued as independent study projects.
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const MODULES = [
+  { id:'M1', name:'Python & Data Engineering',    weeks:'Weeks 1–2', color:'#c084fc' },
+  { id:'M2', name:'Advanced ML Pipeline',         weeks:'Weeks 3–4', color:'#818cf8' },
+  { id:'M3', name:'Deployment & APIs',            weeks:'Week 5',    color:'#34d399' },
+  { id:'M4', name:'Reading Research',             weeks:'Week 6',    color:'#38bdf8' },
+  { id:'M5', name:'Policy & Governance',          weeks:'Week 7',    color:'#f0883e' },
+  { id:'M6', name:'Capstone — Ship It',           weeks:'Weeks 8–10', color:'#ffc72c' },
+];
+
+const modColor = {};
+MODULES.forEach(m => modColor[m.id] = m.color);
+
+const SKILLS = [
+  'pandas.read_csv()',
+  'train_test_split()',
+  'model.fit(X, y)',
+  'cross_val_score()',
+  'GridSearchCV()',
+  'flask.route()',
+  'POST /predict',
+  'parse_arxiv_paper()',
+  'write_policy_brief()',
+  'git push origin main',
+  'model.deploy()',
+  'write_model_card()',
+];
+
+const weeks = [
+  {
+    num: 1,
+    mod: 'M1',
+    title: 'Python for ML — From Zero to Data',
+    sub: 'Module 1 — Python & Data Engineering · Week 1 of 2',
+    lessons: [
+      {
+        time: '0–40 MIN',
+        title: 'Python Crash Course: Everything You Need for ML',
+        tools: ['GOOGLE COLAB', 'PYTHON 3'],
+        body: `If you've never written Python, you'll be functional by the end of this session. If you have, you'll fill in the specific patterns that matter for data science.<br><br>
+          We cover exactly what you need — no more:<br><br>
+          <b>Variables, lists, dictionaries</b> — how data lives in memory<br>
+          <b>Loops and list comprehensions</b> — how you process data without copy-pasting<br>
+          <b>Functions</b> — how you stop repeating yourself<br>
+          <b>Importing libraries</b> — how you use other people's work<br><br>
+          You'll work through a guided notebook in Colab. Every cell has a task. Complete it, run it, move on. Facilitator circulates and unblocks.`,
+        callout: { label: 'ENVIRONMENT', text: 'We use Google Colab because it runs in the browser and requires zero setup. Bookmark it — you\'ll use it for the rest of Tier 3.' }
+      },
+      {
+        time: '45–85 MIN',
+        title: 'Pandas: Load, Inspect, Clean',
+        tools: ['PANDAS', 'GOOGLE COLAB'],
+        body: `Pandas is the standard library for working with tabular data in Python. You'll use it on every real ML project you ever work on.<br><br>
+          Work through this sequence in your notebook:<br><br>`,
+        code: `<span class="kw">import</span> pandas <span class="kw">as</span> pd\n\n<span class="cm"># Load a real dataset</span>\ndf = pd.read_csv(<span class="st">'students.csv'</span>)\n\n<span class="cm"># Inspect it</span>\ndf.head()\ndf.info()\ndf.describe()\n\n<span class="cm"># Find missing values</span>\ndf.isnull().sum()\n\n<span class="cm"># Filter, sort, group</span>\nhigh_scores = df[df[<span class="st">'grade'</span>] > 85]\ndf.groupby(<span class="st">'subject'</span>)[<span class="st">'grade'</span>].mean()`,
+        callout: { label: 'GOAL', text: 'By the end of this session you can load any CSV, understand its shape, find problems, and compute basic statistics. That\'s 80% of what data cleaning actually is.' }
+      },
+    ],
+    wrap: 'Python is a tool. You don\'t need to master it — you need to be functional enough to ask the right questions of your data. What was the hardest part today?'
+  },
+  {
+    num: 2,
+    mod: 'M1',
+    title: 'Feature Engineering & Pipelines',
+    sub: 'Module 1 — Python & Data Engineering · Week 2 of 2',
+    lessons: [
+      {
+        time: '0–40 MIN',
+        title: 'Features: What You Feed the Model Matters',
+        tools: ['PANDAS', 'SCIKIT-LEARN', 'COLAB'],
+        body: `A model can only learn from what you give it. Feature engineering is the process of turning raw data into inputs the model can actually use.<br><br>
+          Today's dataset: housing prices. Raw columns include address, date sold, square footage, number of rooms, neighborhood, year built.<br><br>
+          Your job: transform them.<br><br>
+          <b>Encoding:</b> neighborhood is categorical — you can't multiply "Waterloo" by a weight. Convert it to numbers.<br>
+          <b>Scaling:</b> square footage (1200) and number of rooms (4) live on completely different scales. Normalize both to 0–1.<br>
+          <b>Derived features:</b> year built is less useful than age of house. Calculate it.<br>
+          <b>Drop noise:</b> address adds no signal. Remove it.<br><br>
+          After each transformation: retrain a simple model and see if your score goes up.`,
+        callout: { label: 'KEY INSIGHT', text: 'A simple model with good features almost always beats a complex model with bad features. Feature engineering is where expert knowledge meets data — and it\'s still mostly human work.' }
+      },
+      {
+        time: '45–85 MIN',
+        title: 'Build a Reproducible Pipeline',
+        tools: ['SCIKIT-LEARN PIPELINE', 'COLAB'],
+        body: `The most common mistake in ML projects: you clean and transform data manually, train a model, it works — then when you get new data, you have to remember every step and repeat it by hand.<br><br>
+          Pipelines solve this. A sklearn Pipeline chains your preprocessing steps and model into one object that can be fitted, evaluated, and saved together.`,
+        code: `<span class="kw">from</span> sklearn.pipeline <span class="kw">import</span> Pipeline\n<span class="kw">from</span> sklearn.preprocessing <span class="kw">import</span> StandardScaler\n<span class="kw">from</span> sklearn.ensemble <span class="kw">import</span> RandomForestClassifier\n\npipe = Pipeline([\n    (<span class="st">'scaler'</span>, StandardScaler()),\n    (<span class="st">'model'</span>,  RandomForestClassifier())\n])\n\npipe.fit(X_train, y_train)\npipe.score(X_test, y_test)  <span class="cm"># one line to evaluate</span>`,
+        callout: { label: 'WHY THIS MATTERS', text: 'A pipeline is the difference between a one-time experiment and a repeatable system. When your capstone goes to production, it needs to process new data the same way it processed training data — automatically.' }
+      },
+    ],
+    wrap: 'The gap between a notebook that works once and a system that works reliably is mostly about pipelines. What would break in your pipeline if the input data had a new category you\'d never seen?'
+  },
+  {
+    num: 3,
+    mod: 'M2',
+    title: 'Model Selection & Evaluation',
+    sub: 'Module 2 — Advanced ML Pipeline · Week 3 of 2',
+    lessons: [
+      {
+        time: '0–40 MIN',
+        title: 'Beyond Accuracy: Metrics That Actually Matter',
+        tools: ['SCIKIT-LEARN', 'COLAB'],
+        body: `Accuracy is misleading. If 98% of emails are not spam, a model that says "not spam" for everything gets 98% accuracy — and is completely useless.<br><br>
+          Today: confusion matrices, precision, recall, F1-score, and ROC-AUC. You'll implement each one and understand when to prioritize which metric.<br><br>
+          <b>Precision:</b> of everything you flagged as positive, how many were actually positive? (False alarm rate)<br>
+          <b>Recall:</b> of everything that was actually positive, how much did you catch? (Miss rate)<br>
+          <b>The trade-off:</b> increasing one usually decreases the other. You choose based on the cost of each type of error.<br><br>
+          Real decision: you're building a cancer screening model. A false negative (missed cancer) is devastating. A false positive (unnecessary follow-up) is inconvenient. Which metric do you optimize for?`,
+        callout: { label: 'RULE', text: 'Choose your evaluation metric before you look at your results. If you choose it after, you\'ll unconsciously pick the one that makes your model look best — which is a form of data leakage.' }
+      },
+      {
+        time: '45–85 MIN',
+        title: 'Cross-Validation: Testing Without Cheating',
+        tools: ['SCIKIT-LEARN', 'COLAB'],
+        body: `A model evaluated once on one test set might get lucky. Cross-validation runs your evaluation multiple times on different slices of the data and averages the result — giving you a much more honest estimate of real performance.<br><br>`,
+        code: `<span class="kw">from</span> sklearn.model_selection <span class="kw">import</span> cross_val_score\n\n<span class="cm"># 5-fold cross-validation</span>\nscores = cross_val_score(\n    pipe, X, y,\n    cv=5,\n    scoring=<span class="st">'f1_macro'</span>\n)\n\nprint(<span class="st">f'Mean F1: {scores.mean():.3f}'</span>)\nprint(<span class="st">f'Std:     {scores.std():.3f}'</span>)`,
+        callout: { label: 'COMPARE', text: 'Run the same cross-validation on three different models: Logistic Regression, Random Forest, and SVM. Record mean and std. The best mean wins — but a high std should make you nervous about real-world performance.' }
+      },
+    ],
+    wrap: 'If you had to deploy one of your three models right now, which would you pick and why? Your answer should reference specific numbers, not intuition.'
+  },
+  {
+    num: 4,
+    mod: 'M2',
+    title: 'Hyperparameter Tuning & Regularization',
+    sub: 'Module 2 — Advanced ML Pipeline · Week 4 of 2',
+    lessons: [
+      {
+        time: '0–40 MIN',
+        title: 'The Bias-Variance Trade-off',
+        tools: ['COLAB', 'MATPLOTLIB'],
+        body: `Every ML model has a dial that controls complexity — the number of layers, max depth, number of estimators. Turn it too low: the model underfits, can't learn the patterns. Turn it too high: the model overfits, memorizes the training data and fails on anything new.<br><br>
+          This is the bias-variance trade-off. You'll visualize it today: plot training accuracy and validation accuracy as you increase model complexity. You'll see the characteristic shape — validation accuracy rises, peaks, then falls as the model starts memorizing instead of generalizing.<br><br>
+          The goal of tuning is to find the peak. Not too simple. Not too complex.`,
+        callout: { label: 'REGULARIZATION', text: 'Regularization is a mathematical penalty for complexity — it literally adds a cost to the loss function for having large weights. L1 sparsifies features (some weights become exactly zero). L2 shrinks them all (no feature goes to zero, but large weights are punished). Try both on your model and see which one helps more.' }
+      },
+      {
+        time: '45–85 MIN',
+        title: 'Grid Search: Find the Best Settings Systematically',
+        tools: ['SKLEARN GRIDSEARCHCV', 'COLAB'],
+        body: `Manual tuning is guesswork. Grid search is systematic: you define a grid of hyperparameter combinations and the library tries every one, using cross-validation to evaluate each.`,
+        code: `<span class="kw">from</span> sklearn.model_selection <span class="kw">import</span> GridSearchCV\n\nparam_grid = {\n    <span class="st">'model__n_estimators'</span>: [50, 100, 200],\n    <span class="st">'model__max_depth'</span>:   [None, 5, 10],\n    <span class="st">'model__min_samples_split'</span>: [2, 5]\n}\n\nsearch = GridSearchCV(pipe, param_grid, cv=5, scoring=<span class="st">'f1_macro'</span>)\nsearch.fit(X_train, y_train)\n\nprint(search.best_params_)\nprint(search.best_score_)`,
+        callout: { label: 'WARNING', text: 'Grid search with cross-validation on many hyperparameter combinations can take a long time. Profile your grid before running it. 3 × 3 × 2 = 18 combinations × 5 folds = 90 model fits. On a large dataset that could be hours.' }
+      },
+    ],
+    wrap: 'What\'s the difference between a hyperparameter and a model parameter? Why can\'t you just tune hyperparameters using the same training data you use to train the model?'
+  },
+  {
+    num: 5,
+    mod: 'M3',
+    title: 'Deployment — Build a Real API',
+    sub: 'Module 3 — Deployment & APIs · Week 5',
+    lessons: [
+      {
+        time: '0–40 MIN',
+        title: 'Save Your Model. Build a Flask API.',
+        tools: ['FLASK', 'JOBLIB', 'PYTHON'],
+        body: `A model that only runs in a notebook is a science experiment. A model behind an API is a product.<br><br>
+          Today you'll take the best model from last week, save it to disk, write a minimal Flask API that loads it and exposes a <code>/predict</code> endpoint, and test it with a real HTTP request.`,
+        code: `<span class="kw">import</span> joblib\n<span class="kw">from</span> flask <span class="kw">import</span> Flask, request, jsonify\n\napp = Flask(__name__)\nmodel = joblib.load(<span class="st">'model.pkl'</span>)\n\n@app.route(<span class="st">'/predict'</span>, methods=[<span class="st">'POST'</span>])\n<span class="kw">def</span> predict():\n    data = request.get_json()\n    features = [data[<span class="st">'age'</span>], data[<span class="st">'score'</span>]]\n    pred = model.predict([features])[0]\n    <span class="kw">return</span> jsonify({<span class="st">'prediction'</span>: <span class="kw">int</span>(pred)})\n\n<span class="kw">if</span> __name__ == <span class="st">'__main__'</span>:\n    app.run(debug=<span class="kw">True</span>)`,
+        callout: { label: 'TEST IT', text: 'Use curl or Postman to hit your endpoint: curl -X POST http://localhost:5000/predict -H "Content-Type: application/json" -d \'{"age":17,"score":88}\'. If you get a JSON response back, you have a working ML API.' }
+      },
+      {
+        time: '45–85 MIN',
+        title: 'Deploy to the Internet',
+        tools: ['RENDER.COM', 'GIT', 'GITHUB'],
+        body: `Your API works locally. Now make it accessible to anyone in the world.<br><br>
+          Steps:<br>
+          1. Create a <code>requirements.txt</code> with your dependencies<br>
+          2. Create a <code>Procfile</code> or <code>render.yaml</code><br>
+          3. Push to GitHub<br>
+          4. Connect to Render.com (free tier) and deploy<br><br>
+          When it's live, share the URL with the person next to you and test each other's APIs. By end of session every pair has a public URL that returns predictions.<br><br>
+          Bonus: add input validation. What happens if someone sends a string where you expect a number? Your API should return a helpful error, not crash.`,
+        callout: { label: 'VERSION CONTROL', text: 'If you haven\'t used git before, today is the day. Every professional ML project lives in version control. git init, git add, git commit, git push — four commands that separate a hobby project from a professional one.' }
+      },
+    ],
+    wrap: 'You have a public URL that serves ML predictions. What would you need to add to make it production-ready? Think about: authentication, rate limiting, logging, monitoring, versioning.'
+  },
+  {
+    num: 6,
+    mod: 'M4',
+    title: 'Reading ML Research',
+    sub: 'Module 4 — Reading Research · Week 6',
+    lessons: [
+      {
+        time: '0–40 MIN',
+        title: 'How to Parse an ML Paper in 20 Minutes',
+        tools: ['ARXIV.ORG', 'PRINTED PAPER'],
+        body: `ML research papers look intimidating. They're not — once you know the structure and what to skip on a first read.<br><br>
+          <b>Read in this order:</b><br>
+          1. <b>Abstract</b> (2 min): what problem, what approach, what result?<br>
+          2. <b>Introduction</b> (5 min): why does this problem matter? what did others try?<br>
+          3. <b>Results tables</b> (3 min): what's the actual number improvement? On what benchmark?<br>
+          4. <b>Conclusion</b> (2 min): what do the authors say are their limitations?<br>
+          5. Skip the math on first read. If you need it, come back.<br><br>
+          Today's paper: a recent foundational model paper chosen by the facilitator (ResNet, BERT, or similar). Everyone reads independently for 15 minutes, then the group answers the five questions above together.`,
+        callout: { label: 'BENCHMARK SKEPTICISM', text: 'When a paper claims state-of-the-art results: ask what benchmark they used, who made the benchmark, and whether that benchmark reflects anything you actually care about in the real world. Often the answer is "not really."' }
+      },
+      {
+        time: '45–85 MIN',
+        title: 'Replicate a Simple Result',
+        tools: ['COLAB', 'HUGGING FACE'],
+        body: `The best way to understand a paper is to implement part of it. Today you'll replicate the core result of a simple, well-known paper in 40 minutes using existing libraries.<br><br>
+          Options (pick one based on your background):<br>
+          <b>Option A:</b> Replicate a 2-layer neural network from scratch in numpy — forward pass, loss, backprop, update<br>
+          <b>Option B:</b> Fine-tune a pretrained HuggingFace text classifier on a new dataset and match the baseline accuracy from its paper<br>
+          <b>Option C:</b> Implement k-fold cross-validation from scratch (no sklearn) and verify it matches sklearn's output<br><br>
+          Present your result: did you match the paper's number? If not — why not?`,
+        callout: { label: 'RESEARCH MINDSET', text: 'Most published results are hard to reproduce exactly. The inability to reproduce a result is important scientific information. If you can\'t match a paper\'s numbers, you\'ve learned something about what makes that result fragile.' }
+      },
+    ],
+    wrap: 'Find one paper on arXiv published in the last 6 months that interests you. What\'s the core claim? What would you need to verify it yourself?'
+  },
+  {
+    num: 7,
+    mod: 'M5',
+    title: 'AI Policy & Governance',
+    sub: 'Module 5 — Policy & Governance · Week 7',
+    lessons: [
+      {
+        time: '0–40 MIN',
+        title: 'How Governments Regulate AI',
+        tools: ['EU AI ACT SUMMARY', 'CANADA AIDA SUMMARY'],
+        body: `The European Union's AI Act (2024) is the first comprehensive legal framework for AI in the world. Canada's Artificial Intelligence and Data Act (AIDA) is in progress. You're going to understand both — not as law students, but as people who will build AI systems that fall under them.<br><br>
+          <b>EU AI Act key concepts:</b><br>
+          • <b>Risk tiers:</b> unacceptable risk (banned), high risk (strict rules), limited risk (transparency), minimal risk (no requirements)<br>
+          • <b>Banned:</b> social scoring, real-time biometric surveillance in public, manipulation of vulnerable groups<br>
+          • <b>High risk:</b> hiring tools, credit scoring, critical infrastructure, law enforcement — these require human oversight, documentation, and risk management<br><br>
+          Pair activity: classify 10 hypothetical AI products into EU AI Act risk tiers. Then: your capstone project — what tier would it fall under?`,
+        callout: { label: 'CANADIAN CONTEXT', text: 'AIDA targets "high-impact AI systems" — those that could affect employment, essential services, or personal safety at scale. If you\'re building something that affects people at scale, Canadian law may require you to assess and mitigate harms.' }
+      },
+      {
+        time: '45–85 MIN',
+        title: 'Write a Policy Brief',
+        tools: ['POLICY BRIEF TEMPLATE'],
+        body: `A policy brief is a short document (2-4 pages) that explains a technical issue to a non-technical decision-maker and recommends specific action.<br><br>
+          Groups of 3. Choose one issue:<br>
+          A) Should facial recognition be permitted in Canadian schools?<br>
+          B) Should AI-generated content be required to be labelled at point of publication?<br>
+          C) Should AI systems used in hiring decisions be audited by a public regulator?<br><br>
+          Your brief must include:<br>
+          • What the technology actually does (technical grounding)<br>
+          • The concrete harm you're trying to prevent<br>
+          • Your specific policy recommendation and how it would be enforced<br>
+          • One counterargument to your position and your response to it<br><br>
+          Present to the group. Q&A treated as a policy committee hearing.`,
+        callout: { label: 'WHY THIS MATTERS', text: 'The people who write AI regulations usually aren\'t the people who build AI systems. That gap creates bad policy. The most valuable thing a technically literate person can do in this field is bridge it.' }
+      },
+    ],
+    wrap: 'If you could pass one AI-related law in Canada tomorrow, what would it be? Specific enough that a judge could enforce it.'
+  },
+  {
+    num: 8,
+    mod: 'M6',
+    title: 'Capstone — Architecture & Proposal',
+    sub: 'Module 6 — Capstone: Ship It · Week 8 of 3',
+    lessons: [
+      {
+        time: '0–40 MIN',
+        title: 'Find a Real Problem with Real Users',
+        tools: ['CAPSTONE BRIEF'],
+        body: `Tier 3 capstone is different from Tier 2. Your project must have real users — people outside this room who will actually use what you build. It must be deployed somewhere accessible. And it must have a model card and a documented evaluation.<br><br>
+          Start here: who has a problem that involves pattern recognition, prediction, or classification at a scale that's hard without ML?<br><br>
+          Strong Tier 3 problems:<br>
+          • A local community organization that needs to triage incoming requests<br>
+          • A student club that wants to match members to roles based on skills<br>
+          • A school that wants to understand which students might need academic support before they fall behind<br>
+          • A small business that wants to classify customer feedback automatically<br><br>
+          You're not just building a demo. You're building something you'll hand to a real person and ask them to use.`,
+        callout: { label: 'SCOPE CHECK', text: 'The right scope: 2 weeks of focused work produces something a real user can interact with. Wrong scope: anything that requires more data than you can collect, more compute than you have, or expertise you can\'t develop in 2 weeks.' }
+      },
+      {
+        time: '45–85 MIN',
+        title: 'Technical Architecture & Risk Assessment',
+        tools: ['ARCHITECTURE TEMPLATE'],
+        body: `Draw your system architecture. Every component, every data flow, every dependency:<br><br>
+          <b>Data layer:</b> Where does data come from? How is it stored? Who has access?<br>
+          <b>Model layer:</b> What algorithm? What features? How is it trained and retrained?<br>
+          <b>API layer:</b> How do users interact with it? What endpoints? What input validation?<br>
+          <b>Frontend (if any):</b> What does the user see? What do they control?<br><br>
+          Then: risk assessment. For every component, ask what happens if it fails. For every data flow, ask who could intercept or abuse it. For every prediction, ask what happens if it's wrong and who bears the cost.<br><br>
+          Peer review: swap architectures. Your reviewer asks one question about a risk you didn't address.`,
+        callout: { label: 'PRIVACY', text: 'If your project touches personal data — even if you\'re just a student — you should understand what PIPEDA (Canada\'s federal privacy law) requires. At minimum: collect only what you need, tell users what you\'re collecting, and have a plan for deleting it.' }
+      },
+    ],
+    wrap: 'Who is your user? Have you talked to them? A project built without talking to the person who will use it is a guess, not a solution.'
+  },
+  {
+    num: 9,
+    mod: 'M6',
+    title: 'Capstone — Build Sprint & Code Review',
+    sub: 'Module 6 — Capstone: Ship It · Week 9 of 3',
+    lessons: [
+      {
+        time: '0–50 MIN',
+        title: 'Build Sprint',
+        tools: ['YOUR STACK', 'GITHUB', 'RENDER / RAILWAY'],
+        body: `50 minutes of focused building. Your repo should be on GitHub before this session starts. By the end: your app is deployed and accessible via a public URL.<br><br>
+          Facilitator and UW mentors rotate between pairs for 10-minute check-ins. When they reach you:<br>
+          • Show your live URL<br>
+          • Walk through the riskiest part of your codebase<br>
+          • State your current blockers specifically<br><br>
+          If you're ahead: start your model card and your 90-second demo script. If you're behind: scope down immediately — a working 1-class demo is infinitely better than a broken 3-class demo.`,
+        callout: { label: 'DEBUGGING PROTOCOL', text: 'When you\'re stuck: 1) Read the error message completely, 2) Google the exact error text, 3) Check the library documentation, 4) Ask a peer, 5) Ask the facilitator. In that order. You should spend at least 15 minutes on steps 1-4 before escalating to step 5.' }
+      },
+      {
+        time: '55–85 MIN',
+        title: 'Peer Code Review',
+        tools: ['GITHUB PULL REQUESTS'],
+        body: `You'll review someone else's code. This is how professional software is built — every change is read by at least one other person before it's merged.<br><br>
+          Open their GitHub repo. Look for:<br>
+          • <b>Correctness:</b> does the data preprocessing match what the model expects?<br>
+          • <b>Readability:</b> can you understand what each function does without running it?<br>
+          • <b>Security:</b> is any user input going directly into a file path or SQL query?<br>
+          • <b>Model:</b> is training data being used for validation? (Leakage)<br><br>
+          Leave at least two comments in GitHub — one thing that's done well, one thing that should change. This is a skill as important as writing code.`,
+        callout: { label: 'PROFESSIONAL NORM', text: 'Comments in code review are about the code, not the person. "This function is confusing — could you add a docstring?" is a good comment. "Why would you do it this way?" is not. Learn this now.' }
+      },
+    ],
+    wrap: 'What\'s one thing in your peer\'s code you\'d do differently? What\'s one thing they did that you\'re going to steal for your own project?'
+  },
+  {
+    num: 10,
+    mod: 'M6',
+    title: 'Demo Day & University Connections',
+    sub: 'Module 6 — Capstone: Ship It · Week 10 of 3',
+    lessons: [
+      {
+        time: '0–60 MIN',
+        title: 'Technical Demo Day',
+        tools: ['YOUR DEPLOYED APP', 'MODEL CARD', 'GITHUB'],
+        body: `Judges: UWaterloo Engineering and CS students, faculty, and GRFS community partners.<br><br>
+          You have 5 minutes per team. Structure:<br>
+          <b>1 min:</b> the problem and who has it<br>
+          <b>2 min:</b> live demo on a real device with real inputs<br>
+          <b>1 min:</b> your accuracy number, what it means, and one known failure mode<br>
+          <b>1 min:</b> what you'd build next with more time<br><br>
+          Questions judges will ask — prepare for these:<br>
+          "How does your model handle inputs it's never seen before?"<br>
+          "What's in your training data and could it be biased?"<br>
+          "If this were used on 10,000 people, what's the worst realistic outcome?"<br>
+          "What would it take to make this reliable enough to actually deploy widely?"<br><br>
+          Honest, specific answers to hard questions score higher than defensive ones.`,
+        callout: { label: 'EVALUATION', text: 'Judges weight technical depth (25%), clarity of presentation (25%), honest self-assessment of limitations (25%), and real-world viability (25%). A 70%-accurate model with rigorous evaluation beats an 85%-accurate model whose creator can\'t explain it.' }
+      },
+      {
+        time: '65–85 MIN',
+        title: 'Certificates, Connections & What\'s Next',
+        tools: [],
+        body: `Every student receives a <b>Tier 3 — Launch certificate</b> signed by program leadership and a UWaterloo faculty representative.<br><br>
+          UW mentors share direct contact information for follow-up conversations about:<br>
+          • Undergraduate research assistant (URA) applications<br>
+          • Co-op program pathways in AI/ML<br>
+          • Independent study continuation for standout projects<br>
+          • University application letter of support process<br><br>
+          Closing circle — one word: what did you build? (Your actual project name, not a generic answer.)<br><br>
+          The best capstone project from this cohort will be invited to present at UWaterloo's next Engineering Open House.`,
+        callout: { label: 'TIER 3 GRADUATES', text: 'You built something real. You deployed it. You documented it honestly. You reviewed someone else\'s work. You engaged with the ethics and policy of what you built. That\'s a more rigorous introduction to professional AI work than most undergraduates get.' }
+      },
+    ],
+    wrap: 'End of Tier 3 — Launch. What problem do you want to work on next — and what would you need to learn to do it?'
+  },
+];
+
+let current = 0;
+const done = new Set(JSON.parse(localStorage.getItem('t3done') || '[]'));
+
+function weekColor(w) { return modColor[w.mod] || '#ffc72c'; }
+
+function buildModules() {
+  document.getElementById('modules-grid').innerHTML = MODULES.map(m => `
+    <div class="module-card" style="--mod-color:${m.color}" onclick="jumpToMod('${m.id}')">
+      <div class="module-num">${m.id}</div>
+      <div class="module-name">${m.name}</div>
+      <div class="module-weeks">${m.weeks}</div>
+    </div>
+  `).join('');
+}
+
+function jumpToMod(mid) {
+  const idx = weeks.findIndex(w => w.mod === mid);
+  if (idx >= 0) selectWeek(idx);
+  document.getElementById('week-detail').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function buildSkills() {
+  const saved = JSON.parse(localStorage.getItem('t3skills') || '[]');
+  document.getElementById('skills-grid').innerHTML = SKILLS.map(s => `
+    <div class="skill-tag ${saved.includes(s) ? 'done' : ''}" onclick="toggleSkill(this,'${s}')">${s}</div>
+  `).join('');
+}
+
+function toggleSkill(el, s) {
+  el.classList.toggle('done');
+  const saved = JSON.parse(localStorage.getItem('t3skills') || '[]');
+  const idx = saved.indexOf(s);
+  if (idx >= 0) saved.splice(idx, 1); else saved.push(s);
+  localStorage.setItem('t3skills', JSON.stringify(saved));
+}
+
+function buildDots() {
+  document.getElementById('week-dots').innerHTML = weeks.map((w, i) => `
+    <button class="week-dot-btn ${i === current ? 'active' : ''} ${done.has(i) ? 'done' : ''}"
+      style="--mod-color:${weekColor(w)}" onclick="selectWeek(${i})">${w.num}</button>
+  `).join('');
+}
+
+function buildDetail() {
+  const w = weeks[current];
+  const color = weekColor(w);
+  const isDone = done.has(current);
+  const detail = document.getElementById('week-detail');
+  detail.style.setProperty('--mod-color', color);
+
+  detail.innerHTML = `
+    <div class="mission-header">
+      <div>
+        <div class="mission-label">WEEK ${w.num} · ${w.mod}</div>
+        <div class="mission-title">${w.title}</div>
+        <div class="mission-sub">${w.sub}</div>
+      </div>
+      <button class="done-btn ${isDone ? 'done' : ''}" onclick="toggleDone()">
+        ${isDone ? '✓ COMPLETE' : 'MARK DONE'}
+      </button>
+    </div>
+
+    <div class="lessons">
+      ${w.lessons.map((l, i) => `
+        <div class="time-row">
+          <div class="time-col">${l.time}</div>
+          <div class="time-line"></div>
+          <div class="lesson-block" onclick="toggleLesson(this)">
+            <div class="lesson-top">
+              <div class="lesson-title">${l.title}</div>
+              <div class="lesson-toggle">▶ EXPAND</div>
+            </div>
+            ${l.tools.length ? `<div class="tool-tags">${l.tools.map(t=>`<span class="tool-tag">${t}</span>`).join('')}</div>` : ''}
+            <div class="lesson-body">
+              ${l.body}
+              ${l.code ? `<div class="code-block">${l.code}</div>` : ''}
+              ${l.callout ? `<div class="callout"><div class="callout-label">${l.callout.label}</div>${l.callout.text}</div>` : ''}
+            </div>
+          </div>
+        </div>
+        ${i < w.lessons.length - 1 ? `
+        <div class="break-row">
+          <div class="time-col"></div>
+          <div class="time-line" style="background:transparent"></div>
+          <div class="break-bar">— 5 MIN BREAK —</div>
+        </div>` : ''}
+      `).join('')}
+
+      <div class="wrap-row">
+        <div class="time-col">85 MIN</div>
+        <div class="time-line" style="background:rgba(255,199,44,0.1)"></div>
+        <div class="wrap-block">
+          <div class="wrap-label">CLOSING QUESTION</div>
+          <div class="wrap-text">${w.wrap}</div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  document.getElementById('prev-btn').disabled = current === 0;
+  document.getElementById('next-btn').disabled = current === weeks.length - 1;
+}
+
+function updateProgress() {
+  const pct = (done.size / 10) * 100;
+  document.getElementById('progress-fill').style.width = pct + '%';
+  document.getElementById('progress-count').textContent = `${done.size} / 10`;
+}
+
+function selectWeek(i) {
+  current = i;
+  buildDots();
+  buildDetail();
+  document.getElementById('week-detail').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function changeWeek(dir) {
+  const n = current + dir;
+  if (n >= 0 && n < weeks.length) selectWeek(n);
+}
+
+function toggleDone() {
+  if (done.has(current)) done.delete(current); else done.add(current);
+  localStorage.setItem('t3done', JSON.stringify([...done]));
+  buildDots();
+  buildDetail();
+  updateProgress();
+}
+
+function toggleLesson(el) {
+  el.classList.toggle('open');
+  el.querySelector('.lesson-toggle').textContent = el.classList.contains('open') ? '▼ COLLAPSE' : '▶ EXPAND';
+}
+
+buildModules();
+buildSkills();
+buildDots();
+buildDetail();
+updateProgress();
+</script>
+</body>
+</html>
