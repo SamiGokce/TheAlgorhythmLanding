@@ -1293,7 +1293,7 @@ updateProgress();
   const SPEED = 2.8;
   const keys = {};
 
-  // ── Movement hint (fades once the user moves) ──────────────────────────────
+  // ── Movement/action hint (fades once the user moves) ────────────────────────
   const hint = { alpha: 1, fading: false };
   const DPAD = [
     '..XX..',
@@ -1303,16 +1303,28 @@ updateProgress();
     '..XX..',
     '..XX..',
   ];
+  const ENTER_ICON = [
+    '....X.',
+    '....X.',
+    '....X.',
+    'X...X.',
+    'XXXXX.',
+    '......',
+  ];
+  const HINT_LINES = [
+    { icon: DPAD,       label: 'ARROW KEYS TO MOVE' },
+    { icon: ENTER_ICON, label: 'ENTER TO SELECT' },
+  ];
 
   function drawHint(t) {
     if (hint.alpha <= 0) return;
     if (hint.fading) hint.alpha = Math.max(0, hint.alpha - 0.03);
 
-    const label = 'ARROW KEYS TO MOVE';
     ctx.font = '7px "Press Start 2P", monospace';
-    const tw = ctx.measureText(label).width;
-    const padX = 9, iconW = 12, gap = 7;
-    const bw = padX * 2 + iconW + gap + tw, bh = 26;
+    const padX = 9, iconW = 12, gap = 7, lineH = 20, padY = 7;
+    const tw = Math.max(...HINT_LINES.map(l => ctx.measureText(l.label).width));
+    const bw = padX * 2 + iconW + gap + tw;
+    const bh = padY * 2 + lineH * HINT_LINES.length;
     const bob = Math.sin(t * 0.004) * 3;
 
     let bx = critter.x + CW / 2 - bw / 2;
@@ -1327,18 +1339,20 @@ updateProgress();
     ctx.lineWidth = 1;
     ctx.strokeRect(bx + 0.5, by + 0.5, bw - 1, bh - 1);
 
-    DPAD.forEach((row, r) => {
-      [...row].forEach((ch, c) => {
-        if (ch !== 'X') return;
-        ctx.fillStyle = '#ffc72c';
-        ctx.fillRect(bx + padX + c * 2, by + 7 + r * 2, 2, 2);
+    HINT_LINES.forEach((line, li) => {
+      const rowY = by + padY + li * lineH;
+      line.icon.forEach((row, r) => {
+        [...row].forEach((ch, c) => {
+          if (ch !== 'X') return;
+          ctx.fillStyle = '#ffc72c';
+          ctx.fillRect(bx + padX + c * 2, rowY + 4 + r * 2, 2, 2);
+        });
       });
+      ctx.fillStyle = '#f0e8ff';
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(line.label, bx + padX + iconW + gap, rowY + lineH / 2);
     });
-
-    ctx.fillStyle = '#f0e8ff';
-    ctx.textAlign = 'left';
-    ctx.textBaseline = 'middle';
-    ctx.fillText(label, bx + padX + iconW + gap, by + bh / 2 + 1);
     ctx.globalAlpha = 1;
     ctx.textBaseline = 'alphabetic';
   }
@@ -1401,6 +1415,10 @@ updateProgress();
     if (['ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.key)) {
       keys[e.key] = true; e.preventDefault();
       hint.fading = true;
+    }
+    if (e.key === 'Enter' && active.size) {
+      e.preventDefault();
+      active.forEach(el => el.click());
     }
   });
   window.addEventListener('keyup', e => { keys[e.key] = false; });

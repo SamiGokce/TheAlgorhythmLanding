@@ -985,6 +985,10 @@ updateProgress();
     if (['ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.key)) {
       keys[e.key] = true; e.preventDefault();
     }
+    if (e.key === 'Enter' && active.size) {
+      e.preventDefault();
+      active.forEach(el => el.click());
+    }
   });
   window.addEventListener('keyup', e => { keys[e.key] = false; });
 
