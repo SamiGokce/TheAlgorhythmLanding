@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Algorhythm — Programs</title>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background: #0b0614;
+      color: #f0e8ff;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* starfield */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        radial-gradient(circle, rgba(255,255,255,0.6) 1px, transparent 1px),
+        radial-gradient(circle, rgba(255,255,255,0.3) 1px, transparent 1px);
+      background-size: 120px 120px, 60px 60px;
+      background-position: 0 0, 30px 30px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* glow orbs */
+    .orb {
+      position: fixed;
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 0;
+      filter: blur(80px);
+    }
+    .orb-1 { width: 600px; height: 600px; background: rgba(124,58,237,0.08); top: -200px; left: -100px; }
+    .orb-2 { width: 500px; height: 500px; background: rgba(255,199,44,0.05); bottom: -150px; right: -100px; }
+    .orb-3 { width: 400px; height: 400px; background: rgba(22,101,52,0.08); top: 30%; right: -100px; }
+
+    .page {
+      position: relative;
+      z-index: 1;
+      max-width: 1020px;
+      margin: 0 auto;
+      padding: 48px 24px 100px;
+    }
+
+    /* ── Top nav ───────────────────────────────── */
+    .topnav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 72px;
+    }
+    .back {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 6px;
+      color: rgba(240,232,255,0.4);
+      text-decoration: none;
+      letter-spacing: 0.1em;
+      transition: color 0.2s;
+    }
+    .back:hover { color: #f0e8ff; }
+    .back::before { content: '◀ '; }
+
+    .wordmark {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 10px;
+      color: rgba(240,232,255,0.5);
+      letter-spacing: 0.08em;
+    }
+
+    /* ── Hero ──────────────────────────────────── */
+    .hero {
+      text-align: center;
+      margin-bottom: 80px;
+    }
+
+    .eyebrow {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 7px;
+      letter-spacing: 0.15em;
+      color: rgba(240,232,255,0.35);
+      margin-bottom: 24px;
+    }
+
+    .hero h1 {
+      font-family: 'Press Start 2P', monospace;
+      font-size: clamp(18px, 4vw, 32px);
+      line-height: 1.5;
+      letter-spacing: 0.04em;
+      background: linear-gradient(135deg, #f0e8ff 0%, #c084fc 40%, #ffc72c 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 20px;
+    }
+
+    .hero-sub {
+      font-size: 15px;
+      color: rgba(240,232,255,0.5);
+      max-width: 560px;
+      margin: 0 auto;
+      line-height: 1.7;
+    }
+
+    /* ── Path ──────────────────────────────────── */
+    .path-label {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 6px;
+      letter-spacing: 0.12em;
+      color: rgba(240,232,255,0.25);
+      text-align: center;
+      margin-bottom: 40px;
+    }
+
+    .tiers {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 2px;
+      margin-bottom: 12px;
+      position: relative;
+    }
+
+    /* connector line between cards */
+    .tiers::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: calc(33.33% - 1px);
+      right: calc(33.33% - 1px);
+      height: 1px;
+      background: linear-gradient(90deg, #3b1d6e, #ffc72c, #3b1d6e);
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    .tier-card {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      padding: 32px 24px 28px;
+      border: 1px solid var(--card-border);
+      background: var(--card-bg);
+      text-decoration: none;
+      cursor: pointer;
+      transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
+      overflow: hidden;
+    }
+
+    .tier-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, var(--card-accent), var(--card-accent2));
+    }
+
+    .tier-card::after {
+      content: '';
+      position: absolute;
+      bottom: 0; right: 0;
+      width: 120px; height: 120px;
+      background: radial-gradient(circle at bottom right, var(--card-glow), transparent 70%);
+      pointer-events: none;
+    }
+
+    .tier-card:hover {
+      transform: translateY(-4px);
+      border-color: var(--card-accent);
+      box-shadow: 0 12px 40px var(--card-shadow);
+    }
+
+    /* Tier 1 — Spark */
+    .t1 {
+      --card-bg:     #1a0f2e;
+      --card-border: #3b1d6e;
+      --card-accent:  #c084fc;
+      --card-accent2: #f472b6;
+      --card-glow:   rgba(192,132,252,0.15);
+      --card-shadow: rgba(192,132,252,0.15);
+      --card-dim:    #9b7fc0;
+      --card-text:   #f0e8ff;
+    }
+
+    /* Tier 2 — Build */
+    .t2 {
+      --card-bg:     #0d2117;
+      --card-border: #2d5a3d;
+      --card-accent:  #3fb950;
+      --card-accent2: #58a6ff;
+      --card-glow:   rgba(63,185,80,0.12);
+      --card-shadow: rgba(63,185,80,0.12);
+      --card-dim:    #7aaa88;
+      --card-text:   #e8f5ec;
+    }
+
+    /* Tier 3 — Launch */
+    .t3 {
+      --card-bg:     #130926;
+      --card-border: #4a2d7a;
+      --card-accent:  #ffc72c;
+      --card-accent2: #a855f7;
+      --card-glow:   rgba(255,199,44,0.1);
+      --card-shadow: rgba(255,199,44,0.12);
+      --card-dim:    #9b7fc0;
+      --card-text:   #f0e8ff;
+    }
+
+    .card-num {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 7px;
+      letter-spacing: 0.1em;
+      color: var(--card-accent);
+      margin-bottom: 12px;
+    }
+
+    .card-icon {
+      font-size: 28px;
+      margin-bottom: 14px;
+      filter: saturate(0.8) brightness(1.2);
+    }
+
+    .card-name {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 10px;
+      letter-spacing: 0.06em;
+      color: var(--card-text);
+      margin-bottom: 6px;
+      line-height: 1.6;
+    }
+
+    .card-title {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 7px;
+      color: var(--card-accent);
+      letter-spacing: 0.08em;
+      margin-bottom: 16px;
+    }
+
+    .card-ages {
+      display: inline-block;
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--card-dim);
+      padding: 3px 8px;
+      border: 1px solid var(--card-border);
+      margin-bottom: 16px;
+    }
+
+    .card-desc {
+      font-size: 12px;
+      color: var(--card-dim);
+      line-height: 1.75;
+      flex: 1;
+      margin-bottom: 20px;
+    }
+
+    .card-skills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      margin-bottom: 20px;
+    }
+
+    .card-skill {
+      font-size: 9px;
+      padding: 2px 6px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--card-border);
+      color: var(--card-dim);
+      font-family: 'Courier New', monospace;
+    }
+
+    .card-cta {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 7px;
+      letter-spacing: 0.1em;
+      color: var(--card-accent);
+      padding: 10px 0;
+      border-top: 1px solid var(--card-border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .card-cta-arrow {
+      transition: transform 0.2s;
+    }
+    .tier-card:hover .card-cta-arrow { transform: translateX(4px); }
+
+    /* ── Prereq arrows between cards ──────────── */
+    .prereq-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 2px;
+      margin-bottom: 56px;
+    }
+
+    .prereq-cell {
+      font-size: 10px;
+      color: rgba(240,232,255,0.25);
+      text-align: center;
+      padding: 8px;
+      letter-spacing: 0.04em;
+    }
+    .prereq-cell b { color: rgba(240,232,255,0.5); }
+
+    /* ── Stats row ─────────────────────────────── */
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.05);
+      margin-bottom: 60px;
+    }
+
+    .stat {
+      background: #0b0614;
+      padding: 24px;
+      text-align: center;
+    }
+
+    .stat-num {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 16px;
+      color: #c084fc;
+      margin-bottom: 6px;
+    }
+
+    .stat-label {
+      font-size: 11px;
+      color: rgba(240,232,255,0.35);
+      letter-spacing: 0.06em;
+    }
+
+    /* ── FAQ ───────────────────────────────────── */
+    .faq-label {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 7px;
+      letter-spacing: 0.12em;
+      color: rgba(240,232,255,0.25);
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .faq-label::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: rgba(255,255,255,0.06);
+    }
+
+    .faq-list { display: flex; flex-direction: column; gap: 2px; }
+
+    .faq-item {
+      border: 1px solid rgba(255,255,255,0.06);
+      background: rgba(255,255,255,0.015);
+      overflow: hidden;
+    }
+
+    .faq-q {
+      padding: 16px 20px;
+      font-size: 13px;
+      font-weight: 600;
+      color: rgba(240,232,255,0.8);
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      transition: color 0.1s;
+    }
+    .faq-q:hover { color: #f0e8ff; }
+
+    .faq-chevron {
+      font-size: 10px;
+      color: rgba(240,232,255,0.3);
+      flex-shrink: 0;
+      transition: transform 0.2s;
+    }
+    .faq-item.open .faq-chevron { transform: rotate(180deg); }
+
+    .faq-a {
+      display: none;
+      padding: 0 20px 16px;
+      font-size: 13px;
+      color: rgba(240,232,255,0.45);
+      line-height: 1.8;
+      border-top: 1px solid rgba(255,255,255,0.04);
+      padding-top: 14px;
+    }
+    .faq-item.open .faq-a { display: block; }
+    .faq-a b { color: rgba(240,232,255,0.7); }
+
+    /* ── CTA strip ─────────────────────────────── */
+    .cta-strip {
+      margin-top: 60px;
+      text-align: center;
+      padding: 48px 24px;
+      border: 1px solid rgba(255,199,44,0.15);
+      background: linear-gradient(135deg, rgba(124,58,237,0.06) 0%, rgba(255,199,44,0.04) 100%);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .cta-strip::before {
+      content: '';
+      position: absolute;
+      top: -1px; left: 30%; right: 30%;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, #ffc72c, transparent);
+    }
+
+    .cta-title {
+      font-family: 'Press Start 2P', monospace;
+      font-size: clamp(10px, 2vw, 14px);
+      letter-spacing: 0.06em;
+      color: #f0e8ff;
+      margin-bottom: 12px;
+    }
+
+    .cta-sub {
+      font-size: 13px;
+      color: rgba(240,232,255,0.4);
+      margin-bottom: 24px;
+    }
+
+    .cta-btn {
+      display: inline-block;
+      font-family: 'Press Start 2P', monospace;
+      font-size: 8px;
+      letter-spacing: 0.1em;
+      padding: 14px 32px;
+      background: transparent;
+      border: 1px solid #ffc72c;
+      color: #ffc72c;
+      text-decoration: none;
+      transition: background 0.15s, box-shadow 0.15s;
+    }
+    .cta-btn:hover {
+      background: rgba(255,199,44,0.1);
+      box-shadow: 0 0 24px rgba(255,199,44,0.2);
+    }
+
+    @media (max-width: 700px) {
+      .tiers { grid-template-columns: 1fr; }
+      .tiers::before { display: none; }
+      .prereq-row { grid-template-columns: 1fr; }
+      .stats { grid-template-columns: 1fr 1fr; }
+      .hero h1 { font-size: 16px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="orb orb-3"></div>
+
+  <div class="page">
+
+    <!-- Top nav -->
+    <div class="topnav">
+      <a href="index.html" class="back">HOME</a>
+      <div class="wordmark">ALGORHYTHM</div>
+    </div>
+
+    <!-- Hero -->
+    <div class="hero">
+      <div class="eyebrow">AI EDUCATION · KITCHENER-WATERLOO REGION</div>
+      <h1>THREE TIERS.<br>ONE JOURNEY.</h1>
+      <p class="hero-sub">From your first block of code to your first deployed model — Algorhythm meets students where they are and takes them further than they thought possible.</p>
+    </div>
+
+    <!-- Tier cards -->
+    <div class="path-label">CHOOSE YOUR TIER ↓</div>
+
+    <div class="tiers">
+      <a href="curriculum.html" class="tier-card t1">
+        <div class="card-num">TIER 1</div>
+        <div class="card-icon">🌟</div>
+        <div class="card-name">SPARK</div>
+        <div class="card-title">FIRST LIGHT</div>
+        <div class="card-ages">Ages 7–9 · Grades 2–4</div>
+        <div class="card-desc">No experience needed. Students build intuition for how computers think through games, puzzles, and a walking pixel-art companion. Fun first, concepts second.</div>
+        <div class="card-skills">
+          <span class="card-skill">Patterns</span>
+          <span class="card-skill">Logic</span>
+          <span class="card-skill">Teachable Machine</span>
+          <span class="card-skill">Scratch</span>
+        </div>
+        <div class="card-cta">ENTER TIER 1 <span class="card-cta-arrow">▶</span></div>
+      </a>
+
+      <a href="tier2.html" class="tier-card t2">
+        <div class="card-num">TIER 2</div>
+        <div class="card-icon">⚙️</div>
+        <div class="card-name">BUILD</div>
+        <div class="card-title">GOING DEEPER</div>
+        <div class="card-ages">Ages 10–13 · Grades 5–8</div>
+        <div class="card-desc">Real tools, real concepts. Students train classifiers, explore bias in COMPAS data, and finish with a capstone project of their own design. It gets serious here.</div>
+        <div class="card-skills">
+          <span class="card-skill">TF Playground</span>
+          <span class="card-skill">Computer Vision</span>
+          <span class="card-skill">Model Cards</span>
+          <span class="card-skill">AI Ethics</span>
+        </div>
+        <div class="card-cta">ENTER TIER 2 <span class="card-cta-arrow">▶</span></div>
+      </a>
+
+      <a href="tier3.html" class="tier-card t3">
+        <div class="card-num">TIER 3</div>
+        <div class="card-icon">🚀</div>
+        <div class="card-name">LAUNCH</div>
+        <div class="card-title">SHIP SOMETHING REAL</div>
+        <div class="card-ages">Ages 14–17 · Grades 9–12</div>
+        <div class="card-desc">University of Waterloo campus. Students write Python, build ML pipelines, deploy APIs, read research papers, and present at UW Engineering. Mentored by UW students.</div>
+        <div class="card-skills">
+          <span class="card-skill">Python</span>
+          <span class="card-skill">Flask API</span>
+          <span class="card-skill">Deployment</span>
+          <span class="card-skill">AI Policy</span>
+        </div>
+        <div class="card-cta">ENTER TIER 3 <span class="card-cta-arrow">▶</span></div>
+      </a>
+    </div>
+
+    <!-- Prereq row -->
+    <div class="prereq-row">
+      <div class="prereq-cell"><b>No prerequisites.</b><br>Just curiosity.</div>
+      <div class="prereq-cell"><b>Prereq:</b> Tier 1 completion<br>or placement assessment</div>
+      <div class="prereq-cell"><b>Prereq:</b> Tier 2 completion<br>or interview placement</div>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats">
+      <div class="stat">
+        <div class="stat-num">30</div>
+        <div class="stat-label">WEEKS OF CONTENT</div>
+      </div>
+      <div class="stat">
+        <div class="stat-num">3</div>
+        <div class="stat-label">TIERS</div>
+      </div>
+      <div class="stat">
+        <div class="stat-num">7–17</div>
+        <div class="stat-label">AGE RANGE</div>
+      </div>
+      <div class="stat">
+        <div class="stat-num">UW</div>
+        <div class="stat-label">TIER 3 VENUE</div>
+      </div>
+    </div>
+
+    <!-- FAQ -->
+    <div class="faq-label">FREQUENTLY ASKED</div>
+    <div class="faq-list">
+      <div class="faq-item" onclick="this.classList.toggle('open')">
+        <div class="faq-q">Can my child start at Tier 2 or 3 without doing Tier 1? <span class="faq-chevron">▼</span></div>
+        <div class="faq-a">Yes, with placement. Students who already have coding experience or a strong math background can be assessed for direct entry into Tier 2 or Tier 3. <b>Reach out to us for an informal assessment</b> — it takes 20 minutes and we'll tell you honestly where your child should start.</div>
+      </div>
+      <div class="faq-item" onclick="this.classList.toggle('open')">
+        <div class="faq-q">What does a session actually look like? <span class="faq-chevron">▼</span></div>
+        <div class="faq-a">Sessions run <b>weekly</b>: 60 min for Tier 1, 75 min for Tier 2, 90 min for Tier 3. Each session opens with a 5-minute challenge, moves through two structured activities with a facilitator, and closes with a reflection question. We don't do passive lectures — students are building or solving from the first minute.</div>
+      </div>
+      <div class="faq-item" onclick="this.classList.toggle('open')">
+        <div class="faq-q">Do students need their own computer? <span class="faq-chevron">▼</span></div>
+        <div class="faq-a">Tier 1: no device required. Tier 2: any device with a browser. Tier 3: a laptop is strongly recommended — a Chromebook works for most weeks, but some sessions (Flask, local Python) benefit from a real OS. <b>We can loan devices for students who need them</b> — just let us know when registering.</div>
+      </div>
+      <div class="faq-item" onclick="this.classList.toggle('open')">
+        <div class="faq-q">Is Tier 3 really at the University of Waterloo? <span class="faq-chevron">▼</span></div>
+        <div class="faq-a">Yes. Tier 3 sessions are held on the UW campus in Waterloo, ON. Facilitators are Algorhythm program leads; <b>UW Engineering and CS students serve as mentors</b> during build sessions and provide code review. The capstone Demo Day is open to UW faculty and community partners.</div>
+      </div>
+      <div class="faq-item" onclick="this.classList.toggle('open')">
+        <div class="faq-q">How do I register? <span class="faq-chevron">▼</span></div>
+        <div class="faq-a">Join the waitlist from the <a href="index.html" style="color:#c084fc">home page</a>. When spots open in the next cohort, waitlisted families are contacted first. Cohorts run <b>September–November</b> and <b>January–March</b> each year. Tier 3 also runs a summer intensive in July.</div>
+      </div>
+    </div>
+
+    <!-- CTA strip -->
+    <div class="cta-strip">
+      <div class="cta-title">NOT SURE WHERE TO START?</div>
+      <div class="cta-sub">Join the waitlist and we'll help you figure out the right tier when spots open.</div>
+      <a href="index.html#waitlist" class="cta-btn">JOIN THE WAITLIST</a>
+    </div>
+
+  </div>
+</body>
+</html>
