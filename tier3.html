@@ -535,34 +535,6 @@
       font-style: italic;
     }
 
-    /* ── UW callout strip ──────────────────────── */
-    .uw-strip {
-      margin: 48px 0;
-      padding: 20px 24px;
-      border: 1px solid rgba(255,199,44,0.3);
-      background: var(--gold-dim);
-      display: flex;
-      align-items: center;
-      gap: 20px;
-      flex-wrap: wrap;
-    }
-    .uw-strip-icon { flex-shrink: 0; line-height: 0; }
-    .uw-strip-icon canvas { image-rendering: pixelated; }
-    .uw-strip-text { flex: 1; min-width: 200px; }
-    .uw-strip-title {
-      font-family: var(--pixel);
-      font-size: 8px;
-      color: var(--gold);
-      letter-spacing: 0.1em;
-      margin-bottom: 6px;
-    }
-    .uw-strip-body {
-      font-size: 12px;
-      color: var(--dim);
-      line-height: 1.7;
-    }
-    .uw-strip-body b { color: var(--text); }
-
     /* ── Nav ───────────────────────────────────── */
     .nav-arrows {
       display: flex;
@@ -603,6 +575,10 @@
 </head>
 <body>
 <div class="page">
+
+  <div style="font-size:11px;line-height:1.7;color:var(--dim);text-align:center;margin-bottom:20px">
+    Program details are updated regularly — for the most current information, email us at <a href="mailto:algorhythm@grfsociety.ca" style="color:var(--gold)">algorhythm@grfsociety.ca</a>.
+  </div>
 
   <!-- Top nav -->
   <div class="topnav">
@@ -661,17 +637,6 @@
     <button class="nav-arrow" id="next-btn" onclick="changeWeek(1)">NEXT WEEK &gt;</button>
   </div>
 
-  <!-- UW strip -->
-  <div class="uw-strip">
-    <div class="uw-strip-icon"><canvas id="uw-strip-star" width="36" height="36"></canvas></div>
-    <div class="uw-strip-text">
-      <div class="uw-strip-title">WHAT COMES AFTER TIER 3</div>
-      <div class="uw-strip-body">
-        Tier 3 graduates are eligible for <b>UWaterloo mentorship connections</b>, letters of support for university applications, and priority referrals to <b>co-op, research assistant, and summer internship programs</b> at partner organizations.
-        The best capstone projects are presented at UWaterloo's <b>Engineering Open House</b> and may be continued as independent study projects.
-      </div>
-    </div>
-  </div>
 
 </div>
 
@@ -1180,19 +1145,8 @@ buildDots();
 buildDetail();
 updateProgress();
 
-// UW pixel stars (badge + strip icon)
+// UW pixel star (badge icon)
 (function(){
-  const STAR9=[
-    '....G....',
-    '....G....',
-    '...GGG...',
-    'GGGGGGGGG',
-    '.GGGGGGG.',
-    '..GGGGG..',
-    '..GG.GG..',
-    '.GG...GG.',
-    '.G.....G.',
-  ];
   const STAR5=[
     '..G..',
     '..G..',
@@ -1211,7 +1165,6 @@ updateProgress();
     }));
   }
   paint('uw-mini-star',STAR5,3);
-  paint('uw-strip-star',STAR9,4);
 })();
 </script>
 
@@ -1359,7 +1312,7 @@ updateProgress();
   }
 
   // ── Interactive element hover detection ────────────────────────────────────
-  const SEL = '.module-card, .skill-tag, .week-dot-btn, .lesson-block, .done-btn, .nav-arrow, .tier-pill, .back, .info-chip, .uw-strip';
+  const SEL = '.module-card, .skill-tag, .week-dot-btn, .lesson-block, .done-btn, .nav-arrow, .tier-pill, .back, .info-chip';
   let els = [], active = new Set();
 
   function collectEls() { els = [...document.querySelectorAll(SEL)]; }
